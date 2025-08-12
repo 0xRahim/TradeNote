@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal - Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #1f2937;
+            color: #d1d5db;
+        }
+        .main-content {
+            margin-left: 250px; /* Offset for fixed sidebar */
+            padding: 1.5rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+        .button-primary {
+            @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+        }
+        .input-field {
+            @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2;
+        }
+        /* Custom message box styling */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4CAF50; /* Green for success */
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .message-box.error {
+            background-color: #f44336; /* Red for error */
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+        /* Styles for active sidebar link */
+        .sidebar a.active {
+            background-color: #374151; /* Darker gray for active state */
+            color: white;
+        }
+        /* Added for chart responsiveness inside cards */
+        .chart-container {
+            position: relative;
+            height: 300px; /* Fixed height for consistent chart display */
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar fixed inset-y-0 left-0 flex flex-col p-4 z-10">
+            <div class="text-2xl font-bold text-white mb-8">!TradeNote</div>
+            <nav class="flex-1 space-y-2">
+                <a href="#dashboard" id="navDashboard" class="flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-700 text-white font-medium active">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"></path></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#all-trades" id="navAllTrades" class="flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-700 text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <span>All Trades</span>
+                </a>
+            </nav>
+            <div class="mt-auto">
+                <button id="addTradeBtn" class="button-primary w-full flex items-center justify-center space-x-2 py-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    <span>Add New Trade</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content flex-1 p-6">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view-section">
+                <header class="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
+                    <h1 class="text-3xl font-semibold text-gray-800">Dashboard</h1>
+                    <div class="flex flex-wrap items-center space-x-2 md:space-x-4">
+                        <button id="filterBtn" class="px-3 py-1 md:px-4 md:py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm md:text-base">
+                            Filters <svg class="w-4 h-4 md:w-5 md:h-5 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Dashboard Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                    <div class="card">
+                        <h2 class="text-sm font-medium text-gray-500">Total Trades</h2>
+                        <p id="totalTrades" class="text-3xl font-bold text-gray-800 mt-2">0</p>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-sm font-medium text-gray-500">Total P&L</h2>
+                        <p id="totalPnL" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-sm font-medium text-gray-500">Winning Trades</h2>
+                        <p id="winningTrades" class="text-3xl font-bold text-green-600 mt-2">0</p>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-sm font-medium text-gray-500">Losing Trades</h2>
+                        <p id="losingTrades" class="text-3xl font-bold text-red-600 mt-2">0</p>
+                    </div>
+                </div>
+
+                <!-- Graphs Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="card lg:col-span-2">
+                        <h2 class="text-xl font-semibold mb-4">Cumulative P&L</h2>
+                        <div class="chart-container">
+                            <canvas id="cumulativePnLChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="text-xl font-semibold mb-4">Win Rate</h2>
+                        <div class="chart-container flex items-center justify-center">
+                            <canvas id="winRateChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card lg:col-span-3">
+                        <h2 class="text-xl font-semibold mb-4">Monthly Trade Frequency</h2>
+                        <div class="chart-container">
+                            <canvas id="tradeFrequencyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar and Recent Trades Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 card">
+                        <h2 class="text-xl font-semibold mb-4">Trade Calendar</h2>
+                        <div class="flex justify-between items-center mb-4">
+                            <button id="prevMonth" class="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300">&lt;</button>
+                            <span id="currentMonthYear" class="text-lg font-semibold"></span>
+                            <button id="nextMonth" class="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300">&gt;</button>
+                        </div>
+                        <div id="calendar" class="grid grid-cols-7 gap-1 text-center text-sm">
+                            <!-- Days of the week header -->
+                            <div class="font-bold text-gray-600 py-2">Sun</div>
+                            <div class="font-bold text-gray-600 py-2">Mon</div>
+                            <div class="font-bold text-gray-600 py-2">Tue</div>
+                            <div class="font-bold text-gray-600 py-2">Wed</div>
+                            <div class="font-bold text-gray-600 py-2">Thu</div>
+                            <div class="font-bold text-gray-600 py-2">Fri</div>
+                            <div class="font-bold text-gray-600 py-2">Sat</div>
+                            <!-- Calendar days will be generated here by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="text-xl font-semibold mb-4">Recent Trades</h2>
+                        <div id="recentTradeList" class="space-y-4">
+                            <!-- Trades will be loaded here by JavaScript -->
+                            <p class="text-gray-500 text-center">No recent trades to display.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Trades View -->
+            <div id="allTradesView" class="view-section hidden">
+                <h1 class="text-3xl font-semibold text-gray-800 mb-6">All Trades</h1>
+                <div class="card p-4">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">P&L</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">R:R</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allTradesTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- All trades will be loaded here -->
+                        </tbody>
+                    </table>
+                    <p id="noAllTradesMessage" class="text-gray-500 text-center py-4 hidden">No trades to display.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Trade Modal -->
+    <div id="addTradeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4 z-20">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Trade</h2>
+            <form id="addTradeForm">
+                <div class="mb-4">
+                    <label for="symbol" class="block text-sm font-medium text-gray-700">Symbol <span class="text-red-500">*</span></label>
+                    <input type="text" id="symbol" name="symbol" required class="input-field" placeholder="e.g., TSLA, EUR/USD">
+                </div>
+                <div class="mb-4">
+                    <label for="type" class="block text-sm font-medium text-gray-700">Trade Type <span class="text-red-500">*</span></label>
+                    <select id="type" name="type" required class="input-field">
+                        <option value="">Select Type</option>
+                        <option value="Buy">Buy (Long)</option>
+                        <option value="Sell">Sell (Short)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="date" class="block text-sm font-medium text-gray-700">Date <span class="text-red-500">*</span></label>
+                    <input type="date" id="date" name="date" required class="input-field">
+                </div>
+                <div class="mb-4">
+                    <label for="riskAmount" class="block text-sm font-medium text-gray-700">Risk Amount ($) <span class="text-red-500">*</span></label>
+                    <input type="number" id="riskAmount" name="riskAmount" step="any" required class="input-field" placeholder="e.g., 100.00">
+                </div>
+                <div class="mb-4">
+                    <label for="entryPrice" class="block text-sm font-medium text-gray-700">Entry Price <span class="text-red-500">*</span></label>
+                    <input type="number" id="entryPrice" name="entryPrice" step="any" required class="input-field" placeholder="e.g., 150.25">
+                </div>
+                <div class="mb-4">
+                    <label for="stopLossPrice" class="block text-sm font-medium text-gray-700">Stop Loss Price <span class="text-red-500">*</span></label>
+                    <input type="number" id="stopLossPrice" name="stopLossPrice" step="any" required class="input-field" placeholder="e.g., 149.00">
+                </div>
+                <div class="mb-4">
+                    <label for="partialClosePrice" class="block text-sm font-medium text-gray-700">Partial Close Price (Optional)</label>
+                    <input type="number" id="partialClosePrice" name="partialClosePrice" step="any" class="input-field" placeholder="e.g., 151.50">
+                </div>
+                <div class="mb-4">
+                    <label for="takeProfitPrice" class="block text-sm font-medium text-gray-700">Take Profit Price (Optional)</label>
+                    <input type="number" id="takeProfitPrice" name="takeProfitPrice" step="any" class="input-field" placeholder="e.g., 153.00">
+                </div>
+                <div class="mb-4">
+                    <label for="wonLostAmount" class="block text-sm font-medium text-gray-700">Won/Lost Amount ($) <span class="text-red-500">*</span></label>
+                    <input type="number" id="wonLostAmount" name="wonLostAmount" step="any" required class="input-field" placeholder="e.g., 250.00 (profit) or -100.00 (loss)">
+                </div>
+                <div class="mb-4">
+                    <label for="riskToReward" class="block text-sm font-medium text-gray-700">Risk to Reward Ratio <span class="text-red-500">*</span></label>
+                    <input type="number" id="riskToReward" name="riskToReward" step="any" required class="input-field" placeholder="e.g., 1:2.5 means 2.5">
+                </div>
+                <div class="mb-4">
+                    <label for="notes" class="block text-sm font-medium text-gray-700">Notes / Comments</label>
+                    <textarea id="notes" name="notes" rows="3" class="input-field" placeholder="Add any notes or comments about this trade..."></textarea>
+                </div>
+                 <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Screenshot (Ctrl+V to paste)</label>
+                    <div id="screenshotPreviewContainer" class="mt-2 border border-dashed border-gray-300 rounded-md p-4 text-center cursor-pointer hover:border-blue-500">
+                        <input type="hidden" id="screenshotData" name="screenshotData">
+                        <p class="text-gray-500 text-sm">Paste image here (Ctrl+V)</p>
+                        <img id="screenshotPreview" class="mt-2 max-w-full max-h-48 mx-auto hidden" alt="Screenshot Preview">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelTradeBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="button-primary">Add Trade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div id="filterModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4 z-30">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Filter Trades</h2>
+            <form id="filterForm">
+                <div class="mb-4">
+                    <label for="filterStatus" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="filterStatus" name="filterStatus" class="input-field">
+                        <option value="">All</option>
+                        <option value="winner">Winner</option>
+                        <option value="loser">Loser</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="filterStartDate" class="block text-sm font-medium text-gray-700">Start Date</label>
+                    <input type="date" id="filterStartDate" name="filterStartDate" class="input-field">
+                </div>
+                <div class="mb-4">
+                    <label for="filterEndDate" class="block text-sm font-medium text-gray-700">End Date</label>
+                    <input type="date" id="filterEndDate" name="filterEndDate" class="input-field">
+                </div>
+                <div class="mb-4">
+                    <label for="filterSymbol" class="block text-sm font-medium text-gray-700">Symbol</label>
+                    <input type="text" id="filterSymbol" name="filterSymbol" class="input-field" placeholder="e.g., TSLA">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="clearFiltersBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">Clear</button>
+                    <button type="submit" class="button-primary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Trade Details/Edit Modal -->
+    <div id="tradeDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4 z-40">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800" id="tradeDetailsModalTitle">Trade Details</h2>
+            <form id="tradeDetailsForm">
+                <input type="hidden" id="detailTradeId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label for="detailSymbol" class="block text-sm font-medium text-gray-700">Symbol</label>
+                        <input type="text" id="detailSymbol" name="symbol" required class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailType" class="block text-sm font-medium text-gray-700">Trade Type</label>
+                        <select id="detailType" name="type" required class="input-field">
+                            <option value="Buy">Buy (Long)</option>
+                            <option value="Sell">Sell (Short)</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailDate" class="block text-sm font-medium text-gray-700">Date</label>
+                        <input type="date" id="detailDate" name="date" required class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailRiskAmount" class="block text-sm font-medium text-gray-700">Risk Amount ($)</label>
+                        <input type="number" id="detailRiskAmount" name="riskAmount" step="any" required class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailEntryPrice" class="block text-sm font-medium text-gray-700">Entry Price</label>
+                        <input type="number" id="detailEntryPrice" name="entryPrice" step="any" required class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailStopLossPrice" class="block text-sm font-medium text-gray-700">Stop Loss Price</label>
+                        <input type="number" id="detailStopLossPrice" name="stopLossPrice" step="any" required class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailPartialClosePrice" class="block text-sm font-medium text-gray-700">Partial Close Price</label>
+                        <input type="number" id="detailPartialClosePrice" name="partialClosePrice" step="any" class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailTakeProfitPrice" class="block text-sm font-medium text-gray-700">Take Profit Price</label>
+                        <input type="number" id="detailTakeProfitPrice" name="takeProfitPrice" step="any" class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailWonLostAmount" class="block text-sm font-medium text-gray-700">Won/Lost Amount ($)</label>
+                        <input type="number" id="detailWonLostAmount" name="wonLostAmount" step="any" required class="input-field">
+                    </div>
+                    <div class="mb-4">
+                        <label for="detailRiskToReward" class="block text-sm font-medium text-gray-700">Risk to Reward Ratio</label>
+                        <input type="number" id="detailRiskToReward" name="riskToReward" step="any" required class="input-field">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="detailNotes" class="block text-sm font-medium text-gray-700">Notes / Comments</label>
+                    <textarea id="detailNotes" name="notes" rows="4" class="input-field"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Screenshot</label>
+                    <img id="detailScreenshotPreview" class="mt-2 max-w-full max-h-64 border rounded-md mx-auto" alt="Screenshot">
+                    <p id="noScreenshotMessage" class="text-gray-500 text-sm text-center mt-2 hidden">No screenshot available.</p>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="closeDetailsBtn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">Close</button>
+                    <button type="button" id="deleteTradeBtn" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">Delete Trade</button>
+                    <button type="submit" class="button-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message Box for notifications -->
+    <div id="messageBox" class="message-box hidden"></div>
+
+    <script>
+        // Global variables for Chart.js instances
+        let cumulativePnLChartInstance;
+        let tradeFrequencyChartInstance;
+        let winRateChartInstance; // New instance for Win Rate chart
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const addTradeBtn = document.getElementById('addTradeBtn');
+            const addTradeModal = document.getElementById('addTradeModal');
+            const cancelTradeBtn = document.getElementById('cancelTradeBtn');
+            const addTradeForm = document.getElementById('addTradeForm');
+            const messageBox = document.getElementById('messageBox');
+
+            const filterBtn = document.getElementById('filterBtn');
+            const filterModal = document.getElementById('filterModal');
+            const filterForm = document.getElementById('filterForm');
+            const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+            const tradeDetailsModal = document.getElementById('tradeDetailsModal');
+            const tradeDetailsForm = document.getElementById('tradeDetailsForm');
+            const closeDetailsBtn = document.getElementById('closeDetailsBtn');
+            const deleteTradeBtn = document.getElementById('deleteTradeBtn');
+            const detailScreenshotPreview = document.getElementById('detailScreenshotPreview');
+            const noScreenshotMessage = document.getElementById('noScreenshotMessage');
+
+            // Dashboard Elements
+            const calendarEl = document.getElementById('calendar');
+            const prevMonthBtn = document.getElementById('prevMonth');
+            const nextMonthBtn = document.getElementById('nextMonth');
+            const currentMonthYearEl = document.getElementById('currentMonthYear');
+            let currentCalendarDate = new Date(); // Tracks the currently displayed month in the calendar
+
+            const totalTradesEl = document.getElementById('totalTrades');
+            const totalPnLEl = document.getElementById('totalPnL');
+            const winningTradesEl = document.getElementById('winningTrades');
+            const losingTradesEl = document.getElementById('losingTrades');
+            const recentTradeList = document.getElementById('recentTradeList');
+            const noAllTradesMessage = document.getElementById('noAllTradesMessage');
+
+            // Navigation Elements
+            const navDashboard = document.getElementById('navDashboard');
+            const navAllTrades = document.getElementById('navAllTrades');
+            const dashboardView = document.getElementById('dashboardView');
+            const allTradesView = document.getElementById('allTradesView');
+
+            // Screenshot related elements
+            const screenshotPreviewContainer = document.getElementById('screenshotPreviewContainer');
+            const screenshotDataInput = document.getElementById('screenshotData');
+            const screenshotPreviewImg = document.getElementById('screenshotPreview');
+
+            // --- Utility Functions ---
+
+            // Function to show a message (success or error)
+            function showMessage(message, type = 'success') {
+                messageBox.textContent = message;
+                messageBox.className = `message-box ${type} show`;
+                if (type === 'error') {
+                    messageBox.classList.add('error');
+                } else {
+                    messageBox.classList.remove('error');
+                }
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                    messageBox.classList.remove('error');
+                }, 3000); // Hide after 3 seconds
+            }
+
+            // Function to switch views
+            function showView(viewId) {
+                const views = [dashboardView, allTradesView];
+                views.forEach(view => {
+                    if (view.id === viewId) {
+                        view.classList.remove('hidden');
+                    } else {
+                        view.classList.add('hidden');
+                    }
+                });
+
+                // Update active sidebar link
+                const navLinks = [navDashboard, navAllTrades];
+                navLinks.forEach(link => {
+                    if (link.id === `nav${viewId.charAt(0).toUpperCase() + viewId.slice(1)}`) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+
+                // Re-render data for the active view
+                if (viewId === 'dashboardView') {
+                    fetchTrades(); // Fetches all trades for dashboard stats and calendar
+                } else if (viewId === 'allTradesView') {
+                    fetchAllTradesForTable(); // Fetches all trades for the table
+                }
+            }
+
+
+            // --- Modals Control ---
+
+            // Add Trade Modal
+            addTradeBtn.addEventListener('click', () => {
+                addTradeModal.classList.remove('hidden');
+                addTradeModal.classList.add('flex');
+                document.getElementById('date').valueAsDate = new Date(); // Set default date
+                screenshotPreviewImg.classList.add('hidden'); // Hide screenshot preview
+                screenshotPreviewImg.src = '';
+                screenshotDataInput.value = '';
+            });
+
+            cancelTradeBtn.addEventListener('click', () => {
+                addTradeModal.classList.add('hidden');
+                addTradeModal.classList.remove('flex');
+                addTradeForm.reset();
+            });
+
+            // Filter Modal
+            filterBtn.addEventListener('click', () => {
+                filterModal.classList.remove('hidden');
+                filterModal.classList.add('flex');
+            });
+
+            filterModal.addEventListener('click', (e) => {
+                if (e.target === filterModal) { // Close when clicking outside the modal content
+                    filterModal.classList.add('hidden');
+                    filterModal.classList.remove('flex');
+                }
+            });
+
+            clearFiltersBtn.addEventListener('click', () => {
+                filterForm.reset();
+                filterModal.classList.add('hidden');
+                filterModal.classList.remove('flex');
+                fetchTrades(); // Re-fetch all trades without filters
+            });
+
+            // Trade Details Modal (for view/edit/delete)
+            tradeDetailsModal.addEventListener('click', (e) => {
+                if (e.target === tradeDetailsModal) { // Close when clicking outside the modal content
+                    tradeDetailsModal.classList.add('hidden');
+                    tradeDetailsModal.classList.remove('flex');
+                }
+            });
+
+            closeDetailsBtn.addEventListener('click', () => {
+                tradeDetailsModal.classList.add('hidden');
+                tradeDetailsModal.classList.remove('flex');
+            });
+
+
+            // --- Data Fetching & Display ---
+
+            // Fetch and display trades for Dashboard
+            async function fetchTrades(filters = {}) {
+                let queryString = new URLSearchParams(filters).toString();
+                try {
+                    const response = await fetch(`/trades?${queryString}`);
+                    if (response.ok) {
+                        const trades = await response.json();
+                        updateDashboardStats(trades);
+                        displayRecentTrades(trades);
+                        generateCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), trades);
+                        updateCharts(trades);
+                    } else {
+                        console.error('Failed to fetch trades:', response.statusText);
+                        showMessage('Error fetching dashboard trades.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Network error fetching trades:', error);
+                    showMessage('Network error fetching dashboard trades. Check connection.', 'error');
+                }
+            }
+
+            // Fetch all trades for the "All Trades" table
+            async function fetchAllTradesForTable(filters = {}) {
+                let queryString = new URLSearchParams(filters).toString();
+                try {
+                    const response = await fetch(`/trades?${queryString}`);
+                    if (response.ok) {
+                        const trades = await response.json();
+                        displayAllTradesInTable(trades);
+                    } else {
+                        console.error('Failed to fetch all trades:', response.statusText);
+                        showMessage('Error fetching all trades.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Network error fetching all trades:', error);
+                    showMessage('Network error fetching all trades. Check connection.', 'error');
+                }
+            }
+
+
+            function updateDashboardStats(trades) {
+                totalTradesEl.textContent = trades.length;
+
+                let totalPnL = 0;
+                let winningCount = 0;
+                let losingCount = 0;
+
+                trades.forEach(trade => {
+                    totalPnL += trade.won_lost_amount;
+                    if (trade.won_lost_amount >= 0) {
+                        winningCount++;
+                    } else {
+                        losingCount++;
+                    }
+                });
+
+                totalPnLEl.textContent = `$${totalPnL.toFixed(2)}`;
+                totalPnLEl.className = `text-3xl font-bold mt-2 ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                winningTradesEl.textContent = winningCount;
+                losingTradesEl.textContent = losingCount;
+            }
+
+            function displayRecentTrades(trades) {
+                recentTradeList.innerHTML = '';
+                if (trades.length === 0) {
+                    recentTradeList.innerHTML = '<p class="text-gray-500 text-center">No recent trades to display.</p>';
+                    return;
+                }
+
+                const recentTrades = trades.slice(0, 5); // Show top 5 recent trades
+                recentTrades.forEach(trade => {
+                    const tradeCard = document.createElement('div');
+                    tradeCard.className = 'card mb-2 p-3 text-sm cursor-pointer hover:bg-gray-50';
+                    tradeCard.dataset.tradeId = trade.id; // Store trade ID
+                    const pnlClass = trade.won_lost_amount >= 0 ? 'text-green-600' : 'text-red-600';
+                    tradeCard.innerHTML = `
+                        <p class="font-semibold text-gray-800">${trade.symbol} - ${trade.type}</p>
+                        <p class="text-gray-600">Entry: ${trade.entry_price} | SL: ${trade.stop_loss_price}</p>
+                        <p class="text-gray-600">P/L: <span class="${pnlClass}">$${trade.won_lost_amount.toFixed(2)}</span> | R:R: ${trade.risk_to_reward.toFixed(2)}</p>
+                        <p class="text-gray-500 text-xs">Date: ${trade.trade_date}</p>
+                    `;
+                    tradeCard.addEventListener('click', () => viewTradeDetails(trade.id));
+                    recentTradeList.appendChild(tradeCard);
+                });
+            }
+
+            function displayAllTradesInTable(trades) {
+                const tableBody = document.getElementById('allTradesTableBody');
+                tableBody.innerHTML = ''; // Clear existing rows
+                if (trades.length === 0) {
+                    noAllTradesMessage.classList.remove('hidden');
+                    return;
+                } else {
+                    noAllTradesMessage.classList.add('hidden');
+                }
+
+                trades.forEach(trade => {
+                    const row = tableBody.insertRow();
+                    row.className = 'hover:bg-gray-50';
+                    const pnlClass = trade.won_lost_amount >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium';
+
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${trade.trade_date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${trade.symbol}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${trade.type}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm ${pnlClass}">$${trade.won_lost_amount.toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${trade.risk_to_reward.toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-blue-600 hover:text-blue-900 mr-4" onclick="viewTradeDetails(${trade.id})">View Details</button>
+                            <button class="text-red-600 hover:text-red-900" onclick="confirmDeleteTrade(${trade.id})">Delete</button>
+                        </td>
+                    `;
+                });
+            }
+
+
+            // --- Form Submissions (Add, Edit, Filter, Delete) ---
+
+            addTradeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                // Basic client-side validation for required fields
+                const requiredFields = ['symbol', 'type', 'date', 'riskAmount', 'entryPrice', 'stopLossPrice', 'wonLostAmount', 'riskToReward'];
+                let isValid = true;
+                for (const field of requiredFields) {
+                    const input = document.getElementById(field);
+                    if (!input.value && !input.readOnly) { // Check if field is empty and not read-only
+                        isValid = false;
+                        input.classList.add('border-red-500');
+                    } else {
+                        input.classList.remove('border-red-500');
+                    }
+                }
+                if (!isValid) {
+                    showMessage('Please fill in all required fields.', 'error');
+                    return;
+                }
+
+                const formData = new FormData(addTradeForm);
+                const tradeData = {
+                    symbol: formData.get('symbol'),
+                    type: formData.get('type'),
+                    date: formData.get('date'),
+                    risk_amount: parseFloat(formData.get('riskAmount')),
+                    entry_price: parseFloat(formData.get('entryPrice')),
+                    stop_loss_price: parseFloat(formData.get('stopLossPrice')),
+                    partial_close_price: formData.get('partialClosePrice') ? parseFloat(formData.get('partialClosePrice')) : null,
+                    take_profit_price: formData.get('takeProfitPrice') ? parseFloat(formData.get('takeProfitPrice')) : null,
+                    won_lost_amount: parseFloat(formData.get('wonLostAmount')),
+                    risk_to_reward: parseFloat(formData.get('riskToReward')),
+                    notes: formData.get('notes'),
+                    screenshot_data: formData.get('screenshotData') // Base64 image data
+                };
+
+                try {
+                    const response = await fetch('/add_trade', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(tradeData)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('Trade added successfully:', result);
+                        showMessage('Trade added successfully!');
+                        addTradeModal.classList.add('hidden');
+                        addTradeModal.classList.remove('flex');
+                        addTradeForm.reset();
+                        screenshotPreviewImg.classList.add('hidden'); // Hide screenshot preview
+                        screenshotPreviewImg.src = '';
+                        screenshotDataInput.value = '';
+                        fetchTrades(); // Refresh dashboard
+                        // If on "All Trades" tab, refresh that too
+                        if (!allTradesView.classList.contains('hidden')) {
+                             fetchAllTradesForTable();
+                        }
+
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Failed to add trade:', errorData.error || response.statusText);
+                        showMessage(`Error adding trade: ${errorData.error || response.statusText}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Network error:', error);
+                    showMessage('Network error. Please check your connection.', 'error');
+                }
+            });
+
+            filterForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const filters = {
+                    status: document.getElementById('filterStatus').value,
+                    start_date: document.getElementById('filterStartDate').value,
+                    end_date: document.getElementById('filterEndDate').value,
+                    symbol: document.getElementById('filterSymbol').value
+                };
+                filterModal.classList.add('hidden');
+                filterModal.classList.remove('flex');
+
+                // Apply filters based on current view
+                if (!dashboardView.classList.contains('hidden')) {
+                    fetchTrades(filters);
+                } else if (!allTradesView.classList.contains('hidden')) {
+                    fetchAllTradesForTable(filters);
+                }
+            });
+
+
+            // Function to view/edit trade details
+            window.viewTradeDetails = async (tradeId) => {
+                try {
+                    const response = await fetch(`/trade/${tradeId}`);
+                    if (response.ok) {
+                        const trade = await response.json();
+                        document.getElementById('detailTradeId').value = trade.id;
+                        document.getElementById('detailSymbol').value = trade.symbol;
+                        document.getElementById('detailType').value = trade.type;
+                        document.getElementById('detailDate').value = trade.trade_date;
+                        document.getElementById('detailRiskAmount').value = trade.risk_amount;
+                        document.getElementById('detailEntryPrice').value = trade.entry_price;
+                        document.getElementById('detailStopLossPrice').value = trade.stop_loss_price;
+                        document.getElementById('detailPartialClosePrice').value = trade.partial_close_price;
+                        document.getElementById('detailTakeProfitPrice').value = trade.take_profit_price;
+                        document.getElementById('detailWonLostAmount').value = trade.won_lost_amount;
+                        document.getElementById('detailRiskToReward').value = trade.risk_to_reward;
+                        document.getElementById('detailNotes').value = trade.notes || '';
+
+                        if (trade.screenshot_data) {
+                            detailScreenshotPreview.src = trade.screenshot_data;
+                            detailScreenshotPreview.classList.remove('hidden');
+                            noScreenshotMessage.classList.add('hidden');
+                        } else {
+                            detailScreenshotPreview.src = '';
+                            detailScreenshotPreview.classList.add('hidden');
+                            noScreenshotMessage.classList.remove('hidden');
+                        }
+
+                        tradeDetailsModal.classList.remove('hidden');
+                        tradeDetailsModal.classList.add('flex');
+                    } else {
+                        const errorData = await response.json();
+                        showMessage(`Error fetching trade details: ${errorData.error || response.statusText}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Network error fetching trade details:', error);
+                    showMessage('Network error fetching trade details. Check connection.', 'error');
+                }
+            };
+
+            tradeDetailsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const tradeId = document.getElementById('detailTradeId').value;
+
+                // Basic client-side validation for required fields
+                const requiredFields = ['detailSymbol', 'detailType', 'detailDate', 'detailRiskAmount', 'detailEntryPrice', 'detailStopLossPrice', 'detailWonLostAmount', 'detailRiskToReward'];
+                let isValid = true;
+                for (const field of requiredFields) {
+                    const input = document.getElementById(field);
+                    if (!input.value) {
+                        isValid = false;
+                        input.classList.add('border-red-500');
+                    } else {
+                        input.classList.remove('border-red-500');
+                    }
+                }
+                if (!isValid) {
+                    showMessage('Please fill in all required fields.', 'error');
+                    return;
+                }
+
+
+                const formData = new FormData(tradeDetailsForm);
+                const updatedTradeData = {
+                    symbol: formData.get('symbol'),
+                    type: formData.get('type'),
+                    date: formData.get('date'),
+                    risk_amount: parseFloat(formData.get('riskAmount')),
+                    entry_price: parseFloat(formData.get('entryPrice')),
+                    stop_loss_price: parseFloat(formData.get('stopLossPrice')),
+                    partial_close_price: formData.get('partialClosePrice') ? parseFloat(formData.get('partialClosePrice')) : null,
+                    take_profit_price: formData.get('takeProfitPrice') ? parseFloat(formData.get('takeProfitPrice')) : null,
+                    won_lost_amount: parseFloat(formData.get('wonLostAmount')),
+                    risk_to_reward: parseFloat(formData.get('riskToReward')),
+                    notes: formData.get('notes'),
+                    screenshot_data: detailScreenshotPreview.src && !detailScreenshotPreview.classList.contains('hidden') ? detailScreenshotPreview.src : null // Re-use existing screenshot data if present
+                };
+
+                try {
+                    const response = await fetch(`/trade/${tradeId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedTradeData)
+                    });
+
+                    if (response.ok) {
+                        showMessage('Trade updated successfully!');
+                        tradeDetailsModal.classList.add('hidden');
+                        fetchTrades(); // Refresh dashboard
+                        fetchAllTradesForTable(); // Refresh all trades table
+                    } else {
+                        const errorData = await response.json();
+                        showMessage(`Error updating trade: ${errorData.error || response.statusText}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Network error updating trade:', error);
+                    showMessage('Network error updating trade. Check connection.', 'error');
+                }
+            });
+
+            window.confirmDeleteTrade = async (tradeId) => {
+                if (confirm('Are you sure you want to delete this trade? This action cannot be undone.')) { // Using native confirm for simplicity here
+                    try {
+                        const response = await fetch(`/trade/${tradeId}`, {
+                            method: 'DELETE'
+                        });
+                        if (response.ok) {
+                            showMessage('Trade deleted successfully!');
+                            fetchTrades(); // Refresh dashboard
+                            fetchAllTradesForTable(); // Refresh all trades table
+                            tradeDetailsModal.classList.add('hidden'); // Close details modal if open
+                        } else {
+                            const errorData = await response.json();
+                            showMessage(`Error deleting trade: ${errorData.error || response.statusText}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Network error deleting trade:', error);
+                        showMessage('Network error deleting trade. Check connection.', 'error');
+                    }
+                }
+            };
+
+
+            // --- Calendar Logic ---
+
+            function generateCalendar(year, month, trades = []) {
+                calendarEl.querySelectorAll('.calendar-day-cell').forEach(e => {
+                    if (!e.classList.contains('font-bold')) e.remove(); // Clear previous days, keep day names
+                });
+                const date = new Date(year, month, 1);
+                const firstDay = date.getDay(); // Day of week (0-6)
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                currentMonthYearEl.textContent = `${date.toLocaleString('default', { month: 'long' })} ${year}`;
+
+                // Add empty cells for days before the 1st
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'p-2 border rounded-lg bg-gray-50 flex flex-col justify-between h-24 calendar-day-cell';
+                    calendarEl.appendChild(emptyCell);
+                }
+
+                // Add days of the month
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'p-2 border rounded-lg bg-gray-50 flex flex-col justify-between h-24 calendar-day-cell relative';
+                    dayCell.innerHTML = `<span class="absolute top-2 left-2 text-xs font-semibold">${i}</span>`;
+
+                    // Format current day for comparison (YYYY-MM-DD)
+                    const currentDay = String(i).padStart(2, '0');
+                    const currentMonth = String(month + 1).padStart(2, '0');
+                    const formattedDay = `${year}-${currentMonth}-${currentDay}`;
+
+                    // Find trades for this specific day
+                    const dayTrades = trades.filter(trade => trade.trade_date === formattedDay);
+
+                    if (dayTrades.length > 0) {
+                        let dayPnL = 0;
+                        let allWinning = true;
+                        let allLosing = true;
+
+                        dayTrades.forEach(trade => {
+                            dayPnL += trade.won_lost_amount;
+                            if (trade.won_lost_amount < 0) allWinning = false;
+                            if (trade.won_lost_amount >= 0) allLosing = false;
+                        });
+
+                        const tradesSummary = document.createElement('div');
+                        tradesSummary.className = 'flex flex-col items-center justify-center h-full w-full p-1 overflow-hidden';
+
+                        const pnlDisplay = document.createElement('div');
+                        let pnlClass = 'text-gray-700';
+                        if (dayPnL > 0) pnlClass = 'text-green-600';
+                        else if (dayPnL < 0) pnlClass = 'text-red-600';
+
+                        pnlDisplay.className = `font-bold text-xs ${pnlClass}`;
+                        pnlDisplay.textContent = `$${dayPnL.toFixed(2)}`;
+                        tradesSummary.appendChild(pnlDisplay);
+
+                        const tradeCountDisplay = document.createElement('div');
+                        tradeCountDisplay.className = 'text-xs text-gray-700';
+                        tradeCountDisplay.textContent = `${dayTrades.length} trades`;
+                        tradesSummary.appendChild(tradeCountDisplay);
+
+                        dayCell.appendChild(tradesSummary);
+
+                        // Highlight calendar cell based on daily P&L
+                        if (dayPnL > 0 && allWinning) {
+                            dayCell.classList.add('bg-green-100', 'border-green-400');
+                        } else if (dayPnL < 0 && allLosing) {
+                            dayCell.classList.add('bg-red-100', 'border-red-400');
+                        } else if (dayPnL !== 0) {
+                             dayCell.classList.add('bg-yellow-100', 'border-yellow-400'); // Mixed day
+                        }
+                    }
+                    calendarEl.appendChild(dayCell);
+                }
+            }
+
+            prevMonthBtn.addEventListener('click', () => {
+                currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+                fetchTrades(); // Re-fetch with current filters to update calendar with new month's data
+            });
+
+            nextMonthBtn.addEventListener('click', () => {
+                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+                fetchTrades(); // Re-fetch with current filters to update calendar with new month's data
+            });
+
+            // --- Chart.js Integration ---
+
+            function updateCharts(trades) {
+                // Prepare data for Cumulative P&L Chart
+                const sortedTrades = [...trades].sort((a, b) => new Date(a.trade_date) - new Date(b.trade_date));
+                const dates = [];
+                const cumulativePnL = [];
+                let currentPnL = 0;
+
+                sortedTrades.forEach(trade => {
+                    currentPnL += trade.won_lost_amount;
+                    dates.push(trade.trade_date);
+                    cumulativePnL.push(currentPnL);
+                });
+
+                if (cumulativePnLChartInstance) {
+                    cumulativePnLChartInstance.destroy(); // Destroy existing chart before creating a new one
+                }
+                const ctxPnL = document.getElementById('cumulativePnLChart').getContext('2d');
+                cumulativePnLChartInstance = new Chart(ctxPnL, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Cumulative P&L',
+                            data: cumulativePnL,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Profit/Loss ($)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `$${context.raw.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Prepare data for Monthly Trade Frequency Chart
+                const monthlyFrequency = {};
+                trades.forEach(trade => {
+                    const date = new Date(trade.trade_date);
+                    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    monthlyFrequency[monthYear] = (monthlyFrequency[monthYear] || 0) + 1;
+                });
+
+                const sortedMonths = Object.keys(monthlyFrequency).sort();
+                const frequencies = sortedMonths.map(month => monthlyFrequency[month]);
+
+                if (tradeFrequencyChartInstance) {
+                    tradeFrequencyChartInstance.destroy(); // Destroy existing chart
+                }
+                const ctxFreq = document.getElementById('tradeFrequencyChart').getContext('2d');
+                tradeFrequencyChartInstance = new Chart(ctxFreq, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedMonths,
+                        datasets: [{
+                            label: 'Number of Trades',
+                            data: frequencies,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Number of Trades'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            }
+                        },
+                         plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.raw} trades`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Prepare data for Win Rate Chart (Doughnut)
+                const totalTrades = trades.length;
+                const winningTrades = trades.filter(trade => trade.won_lost_amount >= 0).length;
+                const losingTrades = totalTrades - winningTrades;
+                const winRatePercentage = totalTrades > 0 ? (winningTrades / totalTrades * 100).toFixed(2) : 0;
+
+                if (winRateChartInstance) {
+                    winRateChartInstance.destroy();
+                }
+                const ctxWinRate = document.getElementById('winRateChart').getContext('2d');
+                winRateChartInstance = new Chart(ctxWinRate, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Winning Trades', 'Losing Trades'],
+                        datasets: [{
+                            data: [winningTrades, losingTrades],
+                            backgroundColor: ['#4CAF50', '#f44336'], // Green for win, Red for loss
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `Win Rate: ${winRatePercentage}%`,
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                padding: {
+                                    top: 10,
+                                    bottom: 10
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw;
+                                        const percentage = (value / totalTrades * 100).toFixed(2);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- Screenshot Paste Logic ---
+            screenshotPreviewContainer.addEventListener('paste', (event) => {
+                const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+                for (const item of items) {
+                    if (item.type.indexOf('image') !== -1) {
+                        const blob = item.getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            screenshotPreviewImg.src = e.target.result;
+                            screenshotPreviewImg.classList.remove('hidden');
+                            screenshotDataInput.value = e.target.result; // Store base64 data
+                        };
+                        reader.readAsDataURL(blob);
+                        break;
+                    }
+                }
+            });
+
+
+            // --- Initial Load & Event Listeners ---
+
+            // Navigation
+            navDashboard.addEventListener('click', (e) => {
+                e.preventDefault();
+                showView('dashboardView');
+            });
+
+            navAllTrades.addEventListener('click', (e) => {
+                e.preventDefault();
+                showView('allTradesView');
+            });
+
+            // Initial view load
+            showView('dashboardView'); // Start with the dashboard
+
+            // Initial fetch of trades when the page loads
+            fetchTrades();
+        });
+    </script>
+</body>
+</html>
+
