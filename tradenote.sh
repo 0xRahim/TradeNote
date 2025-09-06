@@ -1,42 +1,41 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Function to clean up background processes on exit
+# Kill background children on exit
 cleanup() {
-    echo "Stopping servers..."
-    # Kill all processes in the same process group as the script
-    kill 0
+  echo "Stopping servers..."
+  pkill -P $$ || true    # kill child processes of this script
 }
-
-# Trap the EXIT signal to run the cleanup function
 trap cleanup EXIT
 
-# Activate virtual environment and start backend API server in the background
+# Start backend (adjust command if different)
 echo "Starting backend server..."
-(cd backend && source venv/bin/activate && python run.py) &
+(
+  cd backend || { echo "backend directory missing"; exit 1; }
+  source venv/bin/activate
+  python run.py
+) > backend.log 2>&1 & 
+BACKEND_PID=$!
 
-# Start frontend server in the background
-echo "Starting frontend server on port 8080..."
-python3 -m http.server 8080 --directory frontend &
+# Start frontend on port 1111 (change to 8080 if you prefer)
+FRONTEND_PORT=1111
+echo "Starting frontend server on port ${FRONTEND_PORT}..."
+python3 -m http.server "${FRONTEND_PORT}" --directory frontend > frontend.log 2>&1 &
+FRONTEND_PID=$!
 
-# Define the frontend URL
-FRONTEND_URL="http://localhost:1111/index.html"
+FRONTEND_URL="http://localhost:${FRONTEND_PORT}/index.html"
 
-# Output information to the user
 echo
 echo "======================================================"
 echo "  TradeNote Application Started"
 echo "======================================================"
-echo
-echo "Backend API server is running."
-echo "Frontend is served at: $FRONTEND_URL"
+echo "Backend PID: ${BACKEND_PID} (logs: backend.log)"
+echo "Frontend PID: ${FRONTEND_PID} (logs: frontend.log)"
+echo "Frontend is served at: ${FRONTEND_URL}"
 echo
 
-# Prompt the user to open the URL
 read -p "Press [Enter] to open the application in your browser..."
+xdg-open "$FRONTEND_URL" || echo "xdg-open failed (maybe no GUI)"
 
-# Open the URL in the default browser
-xdg-open "$FRONTEND_URL"
-
-# Wait indefinitely to keep the script and background servers running
-# The user can stop everything by closing the terminal or pressing Ctrl+C
-wait
+# Wait for background processes (this waits for both; will only exit when both exit)
+wait "${BACKEND_PID}" "${FRONTEND_PID}"
