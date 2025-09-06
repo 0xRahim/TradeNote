@@ -6,9 +6,9 @@ A powerful and personal trading journal to track your trades, analyze your perfo
 
 | Dashboard | Trades | Add Trade |
 | :---: | :---: | :---: |
-| ![Dashboard Screenshot](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/dashboard.png)| *Drag your screenshot here* | *Drag your screenshot here* |
+| ![Dashboard Screenshot](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/dashboard.png)| ![Trades](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/trades.png) | ** |
 | **Playbook** | **Notebook** | **Events** |
-| *Drag your screenshot here* | *Drag your screenshot here* | *Drag your screenshot here* |
+| ![Playbook](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/playbook.png) | ![Notebook](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/notebook.png) | ![Events](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/events.png) |
 
 ## Features
 
@@ -16,7 +16,7 @@ A powerful and personal trading journal to track your trades, analyze your perfo
 *   **Screenshot Uploads**: Attach screenshots to your trades for visual analysis.
 *   **Playbook Creation**: Define and manage your trading strategies with detailed rules, confluences, and roadmaps.
 *   **Note Taking**: A simple notebook to jot down ideas, market observations, or anything else.
-*   **Economic Calendar**: Keep track of important economic events.
+*   **Economic Calendar**: Keep track of important economic events (yet to be implemented).
 *   **User Authentication**: Secure your journal with JWT-based authentication.
 
 ## Tech Stack
