@@ -1,0 +1,10 @@
+
+:root .dark-mode {
+    --background: #f1f5f9;
+    --sidebar-bg: #ffffff;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --muted: #f8fafc;
+    --border-color: #e2e8f0;
+}

@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeNote - Modern Trading Dashboard</title>
+  
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/dark-mode.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    .form-input, .form-select {
+      background-color: var(--background);
+    }
+  </style>
+</head>
+<body class="bg-background text-text-primary">
+  <div id="app" class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar-bg p-6 flex-shrink-0 flex flex-col">
+      <div class="flex items-center gap-3 mb-8">
+        <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="font-display font-bold text-xl">TradeNote</span>
+      </div>
+      <nav class="space-y-2 flex-1">
+        <a href="dashboard.html" class="sidebar-link active">
+          <i data-feather="home" class="sidebar-icon"></i>
+          <span>Overview</span>
+        </a>
+        <a href="daily-journal.html" class="sidebar-link">
+          <i data-feather="book" class="sidebar-icon"></i>
+          <span>Daily Journal</span>
+        </a>
+        <a href="trades.html" class="sidebar-link">
+          <i data-feather="bar-chart-2" class="sidebar-icon"></i>
+          <span>Trades</span>
+        </a>
+        <a href="notebook.html" class="sidebar-link">
+          <i data-feather="edit-3" class="sidebar-icon"></i>
+          <span>Notebook</span>
+        </a>
+        <a href="playbook.html" class="sidebar-link">
+          <i data-feather="compass" class="sidebar-icon"></i>
+          <span>Playbook</span>
+        </a>
+        <a href="events.html" class="sidebar-link">
+          <i data-feather="calendar" class="sidebar-icon"></i>
+          <span>Events</span>
+        </a>
+      </nav>
+      <div>
+        <a href="add-trades.html" class="btn btn-primary w-full">
+            <i data-feather="plus" class="w-5 h-5"></i>
+            <span>Add New Trade</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="flex-1 p-8 overflow-auto">
+      <header class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-display font-bold">Dashboard</h1>
+          <p class="text-text-secondary" id="welcome-message">Welcome back!</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="theme-toggler">
+                <div class="icon active" id="light-mode-icon"><i data-feather="sun"></i></div>
+                <div class="icon" id="dark-mode-icon"><i data-feather="moon"></i></div>
+            </div>
+            <button class="text-text-secondary hover:text-text-primary">
+                <i data-feather="search" class="w-6 h-6"></i>
+            </button>
+            <button class="text-text-secondary hover:text-text-primary">
+                <i data-feather="bell" class="w-6 h-6"></i>
+            </button>
+            <div class="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-background font-bold text-lg" id="user-avatar-placeholder">R</div>
+            <button id="logout-button" class="btn btn-secondary">Logout</button>
+        </div>
+      </header>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="card p-6" data-aos="fade-up">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success">
+                <i data-feather="dollar-sign" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="text-sm text-text-secondary">Net P&L</div>
+                <div class="text-2xl font-bold text-success mt-1" id="net-pnl">$0</div>
+            </div>
+          </div>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                    <i data-feather="trending-up" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="text-sm text-text-secondary">Profit Factor</div>
+                    <div class="text-2xl font-bold mt-1" id="profit-factor">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success">
+                    <i data-feather="check-circle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="text-sm text-text-secondary">Winrate</div>
+                    <div class="text-2xl font-bold mt-1" id="winrate">0%</div>
+                </div>
+            </div>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-danger/20 flex items-center justify-center text-danger">
+                    <i data-feather="trending-down" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="text-sm text-text-secondary">Avg Win/Loss</div>
+                    <div class="text-2xl font-bold mt-1" id="avg-win-loss">0</div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Charts and Calendar -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2 card p-6" data-aos="fade-up" data-aos-delay="400">
+          <h2 class="text-lg font-semibold mb-4">Account Equity Curve</h2>
+          <div class="h-80 flex flex-col">
+            <canvas id="equityCurve"></canvas>
+          </div>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="500">
+          <h2 class="text-lg font-semibold mb-4">Trading Calendar</h2>
+          <div class="h-80">
+            <div class="flex items-center justify-between mb-4">
+              <div class="font-semibold"><div class="font-semibold" id="calendar-month"></div></div>
+              <div>
+                <button class="text-text-secondary hover:text-text-primary"><i data-feather="chevron-left"></i></button>
+                <button class="text-text-secondary hover:text-text-primary"><i data-feather="chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-7 gap-2 text-center text-xs text-text-secondary mb-2">
+              <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+            </div>
+            <div class="grid grid-cols-7 gap-2 flex-1 min-h-0" id="calendar-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="600">
+          <h2 class="text-lg font-semibold mb-4">Net Daily P&L</h2>
+          <div class="h-80">
+            <canvas id="netBarChart"></canvas>
+          </div>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="700">
+          <h2 class="text-lg font-semibold mb-4">Recent Trades</h2>
+          <div class="overflow-auto h-80">
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs text-text-secondary uppercase">
+                <tr>
+                  <th class="py-2">Date</th>
+                  <th>Ticker</th>
+                  <th class="text-right">Net P&L</th>
+                </tr>
+              </thead>
+              <tbody id="recentTradesBody">
+                <!-- JS will populate this -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Robust date parser for trade entry_datetime values.
+        // Handles ISO strings (2025-09-05T...), timestamps, and common dd/mm/yyyy or mm/dd/yyyy strings like "05/09/2025".
+        function parseTradeDate(dateStr) {
+            if (!dateStr) return new Date(NaN);
+            if (typeof dateStr === 'number') return new Date(dateStr);
+            // If ISO-like (contains T or hyphen with year-month-day), rely on Date parsing
+            if (typeof dateStr === 'string' && (dateStr.includes('T') || /\d{4}-\d{2}-\d{2}/.test(dateStr))) {
+                return new Date(dateStr);
+            }
+            // Match d/m/yyyy or dd/mm/yyyy (slashes)
+            const m = String(dateStr).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+            if (m) {
+                // Assume format is DD/MM/YYYY (common outside US). If your API uses MM/DD/YYYY change logic accordingly.
+                const day = parseInt(m[1], 10);
+                const month = parseInt(m[2], 10);
+                const year = parseInt(m[3], 10);
+                return new Date(year, month - 1, day);
+            }
+            // Fallback to native parser
+            return new Date(dateStr);
+        }
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // Logout functionality
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        });
+
+        // Fetch User Info
+        const userResponse = await getUser();
+        if (userResponse.ok) {
+            const userData = await userResponse.json();
+            document.getElementById('welcome-message').textContent = `Welcome back, ${userData.username}!`;
+            if (userData.avatar) {
+                document.getElementById('user-avatar-placeholder').innerHTML = `<img src="data:image/png;base64,${userData.avatar}" class="rounded-full w-full h-full object-cover" alt="User Avatar">`;
+            } else {
+                document.getElementById('user-avatar-placeholder').textContent = userData.username.charAt(0).toUpperCase();
+            }
+        }
+
+        // Fetch Recent Trades
+        const tradesResponse = await getTrades();
+        if (tradesResponse.ok) {
+            const tradesData = await tradesResponse.json();
+            const recentTradesBody = document.getElementById('recentTradesBody');
+            recentTradesBody.innerHTML = ''; // Clear existing content
+            tradesData.trades.slice(0, 5).forEach(trade => { // Display up to 5 recent trades
+                const row = `
+                    <tr class="border-b border-border-color">
+                        <td class="py-3">${parseTradeDate(trade.entry_datetime).toLocaleDateString()}</td>
+                        <td>${trade.ticker}</td>
+                        <td class="text-right ${trade.total_pnl >= 0 ? 'text-success' : 'text-danger'}">${trade.total_pnl.toFixed(2)}</td>
+                    </tr>
+                `;
+                recentTradesBody.innerHTML += row;
+            });
+
+            // Calculate KPI values (simplified for demo)
+            const totalPnl = tradesData.trades.reduce((sum, trade) => sum + trade.total_pnl, 0);
+            document.getElementById('net-pnl').textContent = `${totalPnl.toFixed(2)}`;
+
+            const winningTrades = tradesData.trades.filter(trade => trade.result === 'Win').length;
+            const totalTrades = tradesData.trades.length;
+            const winrate = totalTrades > 0 ? (winningTrades / totalTrades * 100).toFixed(2) : 0;
+            document.getElementById('winrate').textContent = `${winrate}%`;
+
+            const grossProfit = tradesData.trades
+                .filter(trade => trade.total_pnl > 0)
+                .reduce((sum, trade) => sum + trade.total_pnl, 0);
+
+            const grossLoss = Math.abs(tradesData.trades
+                .filter(trade => trade.total_pnl < 0)
+                .reduce((sum, trade) => sum + trade.total_pnl, 0));
+
+            const profitFactor = grossLoss > 0 ? (grossProfit / grossLoss).toFixed(2) : 'N/A';
+            document.getElementById('profit-factor').textContent = profitFactor;
+
+            const losingTrades = totalTrades - winningTrades;
+            const averageWin = winningTrades > 0 ? (grossProfit / winningTrades) : 0;
+            const averageLoss = losingTrades > 0 ? (grossLoss / losingTrades) : 0;
+            
+            const avgWinLossRatio = averageLoss > 0 ? (averageWin / averageLoss).toFixed(2) : 'N/A';
+            document.getElementById('avg-win-loss').textContent = avgWinLossRatio;
+            // --- Updated Chart.js Data for Equity Curve: Total P&L by Month ---
+            // We aggregate trades by month (year-month) using the same tradesData.trades so the result stays dynamic.
+            const sortedTrades = [...tradesData.trades].sort((a, b) => parseTradeDate(a.entry_datetime) - parseTradeDate(b.entry_datetime));
+
+            // Guard: if no trades, show empty chart with a single 0 point
+            let monthlyLabels = [];
+            let monthlyTotals = [];
+
+            if (sortedTrades.length === 0) {
+                monthlyLabels = ['No Data'];
+                monthlyTotals = [0];
+            } else {
+                const map = {};
+                sortedTrades.forEach(trade => {
+                    const d = parseTradeDate(trade.entry_datetime);
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; // YYYY-MM
+                    map[key] = (map[key] || 0) + Number(trade.total_pnl);
+                });
+
+                const keys = Object.keys(map).sort();
+                monthlyLabels = keys.map(k => {
+                    const [y, m] = k.split('-');
+                    const dt = new Date(Number(y), Number(m) - 1, 1);
+                    return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                });
+                monthlyTotals = keys.map(k => map[k]);
+            }
+
+            // Destroy existing charts on the canvases before creating new Chart instances
+            // Chart.getChart(canvas) is Chart.js v3+ helper to retrieve an existing chart attached to the canvas.
+            const equityCanvas = document.getElementById('equityCurve');
+            const existingEquity = Chart.getChart(equityCanvas);
+            if (existingEquity) existingEquity.destroy();
+
+            const equityCurveCtx = equityCanvas.getContext('2d');
+            new Chart(equityCurveCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Total P&L by Month',
+                        data: monthlyTotals,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76,175,80,0.08)',
+                        tension: 0.15,
+                        fill: true,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: { mode: 'index', intersect: false },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true // Ensure y-axis starts at 0 as requested
+                        }
+                    }
+                }
+            });
+
+            const netBarCanvas = document.getElementById('netBarChart');
+            const existingNetBar = Chart.getChart(netBarCanvas);
+            if (existingNetBar) existingNetBar.destroy();
+
+            const netBarChartCtx = netBarCanvas.getContext('2d');
+            new Chart(netBarChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: tradesData.trades.map(trade => parseTradeDate(trade.entry_datetime).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Daily P&L',
+                        data: tradesData.trades.map(trade => trade.total_pnl),
+                        backgroundColor: '#2196F3'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Placeholder for Calendar (requires more complex logic)
+        const calendarGrid = document.getElementById('calendar-grid');
+        // Example: Populate with dummy days
+        // Calendar: show current month only and color days based on daily P&L from tradesData
+            calendarGrid.innerHTML = '';
+            const calendarMonthEl = document.getElementById('calendar-month');
+
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth(); // 0-indexed
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const monthName = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            if (calendarMonthEl) calendarMonthEl.textContent = monthName;
+
+            // Aggregate trades by date (YYYY-MM-DD) for the current month
+            const tradesByDate = {};
+            if (typeof tradesData !== 'undefined' && tradesData.trades) {
+                tradesData.trades.forEach(trade => {
+                    const d = parseTradeDate(trade.entry_datetime);
+                    if (d.getFullYear() === year && d.getMonth() === month) {
+                        const key = d.toISOString().split('T')[0];
+                        tradesByDate[key] = (tradesByDate[key] || 0) + Number(trade.total_pnl);
+                    }
+                });
+            }
+
+            // Add leading blank cells so the first day aligns with weekday
+            const leadingBlanks = firstDay.getDay(); // 0 (Sunday) - 6 (Saturday)
+            for (let i = 0; i < leadingBlanks; i++) {
+                const blank = document.createElement('div');
+                // keep blank cells same size/style as day cells so the grid doesn't shift
+                blank.className = 'p-3 rounded-lg border';
+                calendarGrid.appendChild(blank);
+            }
+
+            // Create day cells for the month
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(year, month, d);
+                const key = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                const pnl = tradesByDate[key]; // Use dailyPnlMap directly, it will be undefined if no trades
+
+                const cell = document.createElement('div');
+                // keep UI intact: border, rounded, padding and a minimum height so boxes don't collapse
+                cell.className = 'p-3 rounded-lg flex flex-col justify-between border';
+
+                // Color based on pnl
+                if (pnl !== undefined && pnl > 0) {
+                    cell.classList.add('bg-success/20');
+                } else if (pnl !== undefined && pnl < 0) {
+                    cell.classList.add('bg-danger/20');
+                } else {
+                    // No trades on this day or PnL is 0, keep it default (white/transparent)
+                    // No specific class added here, so it will inherit parent styles
+                }
+
+                // Highlight current date with a light sky border (ring) only
+                const isToday = date.toDateString() === today.toDateString();
+                if (isToday) {
+                    cell.classList.add('ring-2', 'ring-sky-300');
+                }
+
+                // Date label (top-left) and P&L (bottom-right)
+                const pnlDisplay = (pnl !== undefined && pnl !== 0) ? pnl.toFixed(2) : '';
+                const pnlClass = (pnl !== undefined && pnl > 0) ? 'text-success' : (pnl !== undefined && pnl < 0) ? 'text-danger' : 'text-text-primary';
+                cell.innerHTML = `<div class="text-xs text-text-secondary">${d}</div><div class="text-sm font-medium ${pnlClass}">${pnlDisplay}</div>`;
+                
+                // Add hover effect
+                cell.classList.add('hover:bg-primary-light');
+
+                // Add click event listener
+                cell.addEventListener('click', () => {
+                    window.location.href = `daily-journal.html`;
+                });
+
+                calendarGrid.appendChild(cell);
+            }
+    });
+  </script>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
+

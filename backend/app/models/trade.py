@@ -1,0 +1,22 @@
+from app import db
+
+class Trade(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ticker = db.Column(db.String(20), nullable=False)
+    result = db.Column(db.String(20), nullable=False)
+    total_pnl = db.Column(db.Float, nullable=False)
+    entry_datetime = db.Column(db.DateTime, nullable=False)
+    exit_datetime = db.Column(db.DateTime, nullable=False)
+    risk_reward = db.Column(db.Float, nullable=False)
+    position = db.Column(db.String(20), nullable=False)
+    stoploss_pips = db.Column(db.Integer, nullable=False)
+    trade_range = db.Column(db.Integer, nullable=False)
+    result_type = db.Column(db.String(50), nullable=False)
+    entry_model = db.Column(db.String(50), nullable=False)
+    trade_model = db.Column(db.String(50), nullable=False)
+    setup_type = db.Column(db.String(50), nullable=False)
+    confluences = db.Column(db.JSON)
+    trade_note = db.Column(db.Text, nullable=True)
+    roadmap = db.Column(db.Text, nullable=True)
+    screenshot_filename = db.Column(db.String(255), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

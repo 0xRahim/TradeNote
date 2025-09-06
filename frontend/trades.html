@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeNote - Trades</title>
+  
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/dark-mode.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    .form-input, .form-select {
+      background-color: var(--background);
+    }
+    .table-header{font-weight:600;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:0.05em}
+    .trade-row:hover{background-color:var(--muted)}
+    .trade-row.active{background-color:var(--accent-hover);color:var(--background)}
+    .details-grid { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1.5rem; }
+    .details-label { font-weight: 600; color: var(--text-secondary); }
+    .screenshot-modal-overlay, .filter-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    .screenshot-modal-overlay.active, .filter-modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .screenshot-modal-content {
+        max-width: 90vw;
+        max-height: 90vh;
+    }
+    .filter-modal-content {
+        background-color: var(--sidebar-bg);
+        padding: 2rem;
+        border-radius: 1rem;
+        width: 90%;
+        max-width: 800px;
+    }
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        --tw-border-opacity: 1;
+        border-width: 1px;
+        border-color: transparent;
+    }
+
+    .tag-gray { background-color: rgba(229, 231, 235, 1); color: rgba(55, 65, 81, 1); }
+    .tag-red { background-color: rgba(254, 226, 226, 1); color: rgba(185, 28, 28, 1); }
+    .tag-yellow { background-color: rgba(254, 249, 195, 1); color: rgba(180, 83, 9, 1); }
+    .tag-green { background-color: rgba(209, 250, 229, 1); color: rgba(4, 120, 87, 1); }
+    .tag-blue { background-color: rgba(219, 234, 254, 1); color: rgba(29, 78, 216, 1); }
+    .tag-indigo { background-color: rgba(224, 231, 255, 1); color: rgba(55, 48, 163, 1); }
+    .tag-purple { background-color: rgba(233, 213, 255, 1); color: rgba(107, 33, 168, 1); }
+    .tag-pink { background-color: rgba(252, 231, 243, 1); color: rgba(190, 24, 93, 1); }
+  </style>
+</head>
+<body class="bg-background text-text-primary">
+  <div id="app" class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar-bg p-6 flex-shrink-0 flex flex-col">
+        <div class="flex items-center gap-3 mb-8">
+            <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="font-display font-bold text-xl">TradeNote</span>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="dashboard.html" class="sidebar-link">
+                <i data-feather="home" class="sidebar-icon"></i>
+                <span>Overview</span>
+            </a>
+            <a href="daily-journal.html" class="sidebar-link">
+                <i data-feather="book" class="sidebar-icon"></i>
+                <span>Daily Journal</span>
+            </a>
+            <a href="trades.html" class="sidebar-link active">
+                <i data-feather="bar-chart-2" class="sidebar-icon"></i>
+                <span>Trades</span>
+            </a>
+            <a href="notebook.html" class="sidebar-link">
+                <i data-feather="edit-3" class="sidebar-icon"></i>
+                <span>Notebook</span>
+            </a>
+            <a href="playbook.html" class="sidebar-link">
+                <i data-feather="compass" class="sidebar-icon"></i>
+                <span>Playbook</span>
+            </a>
+            <a href="events.html" class="sidebar-link">
+                <i data-feather="calendar" class="sidebar-icon"></i>
+                <span>Events</span>
+            </a>
+        </nav>
+        <div>
+            <a href="add-trades.html" class="btn btn-primary w-full">
+                <i data-feather="plus" class="w-5 h-5"></i>
+                <span>Add New Trade</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="flex-1 p-8 overflow-auto">
+      <header class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-display font-bold">Trades</h1>
+          <p class="text-text-secondary">Review and analyze all your trades.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="theme-toggler">
+                <div class="icon active" id="light-mode-icon"><i data-feather="sun"></i></div>
+                <div class="icon" id="dark-mode-icon"><i data-feather="moon"></i></div>
+            </div>
+        </div>
+      </header>
+
+      <!-- Individual Trade View -->
+      <div class="card p-6 mb-8" data-aos="fade-up">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Individual Trade View</h2>
+            <button id="edit-trade-btn" class="btn btn-secondary"><i data-feather="edit-2"></i><span>Edit Trade</span></button>
+        </div>
+        <div class="grid grid-cols-12 gap-6">
+          <div class="col-span-12 lg:col-span-4">
+            <div id="individual-trade-details" class="space-y-4"></div>
+          </div>
+          <div class="col-span-12 lg:col-span-8">
+            <div id="screenshot-container" class="w-full h-full bg-muted rounded-lg flex items-center justify-center cursor-pointer">
+              <img id="screenshot-img" src="" alt="Trade Screenshot" class="max-w-full max-h-full rounded-lg">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trade List -->
+      <div class="card p-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">All Trades</h2>
+            <button id="open-filter-modal-btn" class="btn btn-secondary"><i data-feather="filter"></i><span>Filter</span></button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="border-b border-border-color">
+              <tr>
+                <th class="p-3 table-header">Date</th>
+                <th class="p-3 table-header">Ticker</th>
+                <th class="p-3 table-header">Status</th>
+                <th class="p-3 table-header">Entry/Exit</th>
+                <th class="p-3 table-header text-right">Net PNL</th>
+                <th class="p-3 table-header text-right">ROI</th>
+                <th class="p-3 table-header text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="trade-list">
+              <!-- Trade rows will be inserted here by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="flex justify-center mt-4">
+            <button id="prev-page-btn" class="btn btn-secondary"><i data-feather="arrow-left"></i>Prev</button>
+            <span id="page-info" class="p-3"></span>
+            <button id="next-page-btn" class="btn btn-secondary">Next<i data-feather="arrow-right"></i></button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Screenshot Modal -->
+  <div id="screenshot-modal" class="screenshot-modal-overlay">
+    <img id="fullscreen-screenshot" src="" alt="Full-screen Trade Screenshot" class="screenshot-modal-content">
+  </div>
+
+  <!-- Filter Modal -->
+  <div id="filter-modal" class="filter-modal-overlay">
+    <div class="filter-modal-content">
+        <h2 class="text-2xl font-bold font-display mb-4">Filter Trades</h2>
+        <form id="filter-form" class="grid grid-cols-2 gap-4">
+            <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <input type="date" id="filter-date-start" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">End Date</label>
+                <input type="date" id="filter-date-end" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Result</label>
+                <select id="filter-result" class="form-select">
+                    <option value="">All</option>
+                    <option value="Win">Win</option>
+                    <option value="Loss">Loss</option>
+                    <option value="Partial">Partial</option>
+                    <option value="Break-even">Break-even</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Result Type</label>
+                <select id="filter-result-type" class="form-select">
+                    <option value="">All</option>
+                    <option value="Good Win">Good Win</option>
+                    <option value="Bad Win">Bad Win</option>
+                    <option value="Good Loss">Good Loss</option>
+                    <option value="Bad Loss">Bad Loss</option>
+                </select>
+            </div>
+            <div class="flex justify-end col-span-2 gap-4 mt-4">
+                <button type="button" id="cancel-filter-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script>
+    let allTrades = []; // Store all trades fetched from the API
+    let filteredTrades = [];
+    let currentPage = 1;
+    const rowsPerPage = 20;
+    let selectedTradeId = null;
+
+    const tagColors = ['gray', 'red', 'yellow', 'green', 'blue', 'indigo', 'purple', 'pink'];
+    function getTagColor(tagText) {
+        let hash = 0;
+        for (let i = 0; i < tagText.length; i++) {
+            hash = tagText.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return tagColors[Math.abs(hash) % tagColors.length];
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        await fetchTrades();
+        renderTradeList();
+
+        // Event Listeners
+        document.getElementById('trade-list').addEventListener('click', handleTradeActions);
+        document.getElementById('edit-trade-btn').addEventListener('click', handleEditTrade);
+        document.getElementById('open-filter-modal-btn').addEventListener('click', () => {
+            document.getElementById('filter-modal').classList.add('active');
+        });
+        document.getElementById('cancel-filter-btn').addEventListener('click', () => {
+            document.getElementById('filter-modal').classList.remove('active');
+        });
+        document.getElementById('filter-form').addEventListener('submit', handleFilterSubmit);
+        document.getElementById('prev-page-btn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTradeList();
+            }
+        });
+        document.getElementById('next-page-btn').addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredTrades.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTradeList();
+            }
+        });
+        document.getElementById('screenshot-img').addEventListener('click', () => {
+            document.getElementById('fullscreen-screenshot').src = document.getElementById('screenshot-img').src;
+            document.getElementById('screenshot-modal').classList.add('active');
+        });
+        document.getElementById('screenshot-modal').addEventListener('click', () => {
+            document.getElementById('screenshot-modal').classList.remove('active');
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('screenshot-modal').classList.remove('active');
+                document.getElementById('filter-modal').classList.remove('active');
+            }
+        });
+
+        feather.replace();
+    });
+
+    async function fetchTrades() {
+        const response = await getTrades();
+        if (response.ok) {
+            const data = await response.json();
+            allTrades = data.trades;
+            filteredTrades = [...allTrades]; // Initialize filtered trades with all trades
+            if (allTrades.length > 0) {
+                selectedTradeId = allTrades[0].id;
+                renderIndividualTrade(allTrades[0]);
+            }
+        }
+    }
+
+    function renderTradeList() {
+        const tradeListBody = document.getElementById('trade-list');
+        tradeListBody.innerHTML = '';
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedTrades = filteredTrades.slice(start, end);
+
+        paginatedTrades.forEach(trade => {
+            const row = document.createElement('tr');
+            row.className = `trade-row border-b border-border-color ${trade.id === selectedTradeId ? 'active' : ''}`;
+            row.dataset.tradeId = trade.id;
+            
+            let statusClass = '';
+            switch(trade.result) {
+                case 'Win': statusClass = 'bg-success/20 text-success'; break;
+                case 'Loss': statusClass = 'bg-danger/20 text-danger'; break;
+                case 'Break-even': statusClass = 'bg-gray-500/20 text-gray-300'; break;
+                default: statusClass = 'bg-blue-500/20 text-blue-300'; // For Partial or other statuses
+            }
+
+            row.innerHTML = `
+                <td class="p-3">${new Date(trade.entry_datetime).toLocaleDateString()}</td>
+                <td class="p-3 font-semibold">${trade.ticker}</td>
+                <td class="p-3"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">${trade.result}</span></td>
+                <td class="p-3 font-mono">${trade.entry_datetime.split('T')[1].substring(0, 5)} / ${trade.exit_datetime.split('T')[1].substring(0, 5)}</td>
+                <td class="p-3 text-right font-bold ${trade.total_pnl >= 0 ? 'text-success' : 'text-danger'}">${trade.total_pnl.toFixed(2)}</td>
+                <td class="p-3 text-right ${trade.total_pnl >= 0 ? 'text-success' : 'text-danger'}">${((trade.total_pnl / trade.entry_price) * 100).toFixed(2)}%</td>
+                <td class="p-3 text-center">
+                    <button class="text-text-secondary hover:text-accent view-trade-btn" data-id="${trade.id}"><i data-feather="eye"></i></button>
+                    <button class="text-text-secondary hover:text-accent edit-trade-btn" data-id="${trade.id}"><i data-feather="edit-2"></i></button>
+                    <button class="text-text-secondary hover:text-danger delete-trade-btn" data-id="${trade.id}"><i data-feather="trash-2"></i></button>
+                </td>
+            `;
+            tradeListBody.appendChild(row);
+        });
+        feather.replace();
+        updatePagination();
+    }
+
+    async function renderIndividualTrade(trade) {
+        const individualTradeDetails = document.getElementById('individual-trade-details');
+        const screenshotImg = document.getElementById('screenshot-img');
+
+        individualTradeDetails.innerHTML = `
+            <div class="details-grid">
+                <div class="details-label">Net P&L:</div><div class="font-bold ${trade.total_pnl >= 0 ? 'text-success' : 'text-danger'}">${trade.total_pnl.toFixed(2)}</div>
+                <div class="details-label">Side:</div><div>${trade.position}</div>
+                <div class="details-label">Risk/Reward:</div><div>${trade.risk_reward}</div>
+                <div class="details-label">Stop Loss Pips:</div><div>${trade.stoploss_pips}</div>
+                <div class="details-label">Trade Range:</div><div>${trade.trade_range}</div>
+                <div class="details-label">Result Type:</div><div>${trade.result_type}</div>
+                <div class="details-label">Entry Model:</div><div>${trade.entry_model}</div>
+                <div class="details-label">Trade Model:</div><div>${trade.trade_model}</div>
+                <div class="details-label">Setup Type:</div><div>${trade.setup_type}</div>
+            </div>
+            <hr class="my-4 border-border-color">
+            <div>
+                <label class="form-label">Confluences</label>
+                <div class="flex flex-wrap gap-2">
+                    ${trade.confluences.map(tag => `<span class="tag tag-${getTagColor(tag)}">${tag}</span>`).join('')}
+                </div>
+            </div>
+            <div>
+                <label class="form-label">Trade Note</label>
+                <div class="p-3 bg-muted rounded-lg text-text-secondary">${trade.trade_note || 'N/A'}</div>
+            </div>
+            <div>
+                <label class="form-label">Roadmap</label>
+                <div class="p-3 bg-muted rounded-lg text-text-secondary">${trade.roadmap || 'N/A'}</div>
+            </div>
+        `;
+        if (trade.screenshot_filename) {
+            const screenshotResponse = await fetch(`${API_BASE_URL}/trades/screenshots/${trade.screenshot_filename}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (screenshotResponse.ok) {
+                const imageBlob = await screenshotResponse.blob();
+                const imageUrl = URL.createObjectURL(imageBlob);
+                screenshotImg.src = imageUrl;
+                // Revoke the object URL when the image is no longer needed (e.g., when a new trade is selected)
+                screenshotImg.onload = () => URL.revokeObjectURL(imageUrl);
+            } else {
+                console.error('Failed to load screenshot', screenshotResponse.statusText);
+                screenshotImg.src = ''; // Clear image on error
+            }
+        } else {
+            screenshotImg.src = ''; // Clear image if no screenshot
+        }
+    }
+
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredTrades.length / rowsPerPage);
+        document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById('prev-page-btn').disabled = currentPage === 1;
+        document.getElementById('next-page-btn').disabled = currentPage === totalPages;
+    }
+
+    async function handleTradeActions(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        const tradeId = parseInt(target.dataset.id);
+        selectedTradeId = tradeId;
+
+        // Update active row styling
+        document.querySelectorAll('.trade-row').forEach(r => r.classList.remove('active'));
+        target.closest('.trade-row').classList.add('active');
+
+        if (target.classList.contains('view-trade-btn')) {
+            const response = await getTrade(tradeId);
+            if (response.ok) {
+                const trade = await response.json();
+                renderIndividualTrade(trade);
+            } else {
+                alert('Failed to fetch trade details.');
+            }
+        } else if (target.classList.contains('edit-trade-btn')) {
+            // Redirect to add-trades.html with trade ID for editing
+            window.location.href = `add-trades.html?id=${tradeId}`;
+        } else if (target.classList.contains('delete-trade-btn')) {
+            if (confirm('Are you sure you want to delete this trade?')) {
+                const response = await deleteTrade(tradeId);
+                if (response.ok) {
+                    alert('Trade deleted successfully!');
+                    await fetchTrades(); // Re-fetch and re-render list
+                    renderTradeList();
+                } else {
+                    alert('Failed to delete trade.');
+                }
+            }
+        }
+    }
+
+    function handleFilterSubmit(e) {
+        e.preventDefault();
+        const dateStart = document.getElementById('filter-date-start').value;
+        const dateEnd = document.getElementById('filter-date-end').value;
+        const result = document.getElementById('filter-result').value;
+        const resultType = document.getElementById('filter-result-type').value;
+
+        filteredTrades = allTrades.filter(trade => {
+            let pass = true;
+            const tradeDate = new Date(trade.entry_datetime);
+            if (dateStart && tradeDate < new Date(dateStart)) pass = false;
+            if (dateEnd && tradeDate > new Date(dateEnd)) pass = false;
+            if (result && trade.result !== result) pass = false;
+            if (resultType && trade.result_type !== resultType) pass = false;
+            return pass;
+        });
+
+        currentPage = 1;
+        renderTradeList();
+        document.getElementById('filter-modal').classList.remove('active');
+    }
+
+  </script>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

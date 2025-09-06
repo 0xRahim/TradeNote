@@ -1,0 +1,371 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeNote - Add New Trade</title>
+  
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/dark-mode.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    .form-input, .form-select {
+      background-color: var(--background);
+    }
+  </style>
+</head>
+<body class="bg-background text-text-primary">
+  <div id="app" class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar-bg p-6 flex-shrink-0 flex flex-col">
+        <div class="flex items-center gap-3 mb-8">
+            <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="font-display font-bold text-xl">TradeNote</span>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="dashboard.html" class="sidebar-link">
+                <i data-feather="home" class="sidebar-icon"></i>
+                <span>Overview</span>
+            </a>
+            <a href="daily-journal.html" class="sidebar-link">
+                <i data-feather="book" class="sidebar-icon"></i>
+                <span>Daily Journal</span>
+            </a>
+            <a href="trades.html" class="sidebar-link">
+                <i data-feather="bar-chart-2" class="sidebar-icon"></i>
+                <span>Trades</span>
+            </a>
+            <a href="notebook.html" class="sidebar-link">
+                <i data-feather="edit-3" class="sidebar-icon"></i>
+                <span>Notebook</span>
+            </a>
+            <a href="playbook.html" class="sidebar-link">
+                <i data-feather="compass" class="sidebar-icon"></i>
+                <span>Playbook</span>
+            </a>
+            <a href="events.html" class="sidebar-link">
+                <i data-feather="calendar" class="sidebar-icon"></i>
+                <span>Events</span>
+            </a>
+        </nav>
+        <div>
+            <a href="add-trades.html" class="btn btn-primary w-full">
+                <i data-feather="plus" class="w-5 h-5"></i>
+                <span>Add New Trade</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="flex-1 p-8 overflow-auto">
+      <header class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-display font-bold" id="form-title">Add New Trade</h1>
+          <p class="text-text-secondary">Manually enter the details of your trade.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="theme-toggler">
+                <div class="icon active" id="light-mode-icon"><i data-feather="sun"></i></div>
+                <div class="icon" id="dark-mode-icon"><i data-feather="moon"></i></div>
+            </div>
+        </div>
+      </header>
+
+      <div class="card p-8 max-w-4xl mx-auto" data-aos="fade-up">
+        <form id="trade-form">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
+            <div class="form-group">
+              <label for="ticker" class="form-label">Ticker</label>
+              <input type="text" id="ticker" class="form-input" placeholder="e.g., AAPL, EURUSD" required>
+            </div>
+            <div class="form-group">
+              <label for="result" class="form-label">Result</label>
+              <select id="result" class="form-select" required>
+                <option>Win</option>
+                <option>Loss</option>
+                <option>Partial</option>
+                <option>Break-even</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="total_pnl" class="form-label">Total PNL</label>
+              <input type="number" id="total_pnl" class="form-input" placeholder="e.g., 250.00" step="0.01" required>
+            </div>
+            <div class="form-group">
+              <label for="entry_datetime" class="form-label">Entry Date Time</label>
+              <input type="datetime-local" id="entry_datetime" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="exit_datetime" class="form-label">Exit Date Time</label>
+              <input type="datetime-local" id="exit_datetime" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="risk_reward" class="form-label">Risk/Reward Gained</label>
+              <input type="number" id="risk_reward" class="form-input" placeholder="e.g., 2.5" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="position" class="form-label">Position</label>
+                <select id="position" class="form-select" required>
+                  <option>Long</option>
+                  <option>Short</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="stoploss_pips" class="form-label">Stoploss Pips</label>
+                <input type="number" id="stoploss_pips" class="form-input" placeholder="e.g., 10" required>
+            </div>
+            <div class="form-group">
+                <label for="trade_range" class="form-label">Range</label>
+                <input type="number" id="trade_range" class="form-input" placeholder="e.g., 50" required>
+            </div>
+            <div class="form-group">
+                <label for="result_type" class="form-label">Result Type</label>
+                <select id="result_type" class="form-select" required>
+                  <option>Good Win</option>
+                  <option>Bad Win</option>
+                  <option>Good Loss</option>
+                  <option>Bad Loss</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="entry_model" class="form-label">Entry Model</label>
+                <input type="text" id="entry_model" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="trade_model" class="form-label">Trade Model</label>
+                <input type="text" id="trade_model" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label for="setup_type" class="form-label">Setup Type</label>
+                <input type="text" id="setup_type" class="form-input" required>
+            </div>
+
+            <div class="md:col-span-3 form-group">
+              <label for="confluences" class="form-label">Confluences (Comma Separated)</label>
+              <input type="text" id="confluences" class="form-input" placeholder="e.g., Breakout, EMA Cross">
+            </div>
+            <div class="md:col-span-3 form-group">
+              <label for="trade_note" class="form-label">Trade Note</label>
+              <textarea id="trade_note" class="form-input" rows="4" placeholder="Why did you take this trade?"></textarea>
+            </div>
+            <div class="md:col-span-3 form-group">
+              <label for="roadmap" class="form-label">Roadmap</label>
+              <textarea id="roadmap" class="form-input" rows="4" placeholder="What was your plan for this trade?"></textarea>
+            </div>
+
+            <div class="md:col-span-3 form-group">
+              <label for="screenshot" class="form-label">Screenshot</label>
+              <div id="screenshot-drop-area" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md border-border-color hover:border-accent transition">
+                <div class="space-y-1 text-center">
+                  <i data-feather="image" class="mx-auto h-12 w-12 text-text-secondary"></i>
+                  <div class="flex text-sm text-text-secondary">
+                    <label for="file-upload" class="relative cursor-pointer bg-background rounded-md font-medium text-accent hover:text-accent-hover focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-accent-hover">
+                      <span>Upload a file</span>
+                      <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/*">
+                    </label>
+                    <p class="pl-1">or drag and drop</p>
+                  </div>
+                  <p class="text-xs text-text-secondary">PNG, JPG, GIF up to 10MB</p>
+                  <p class="text-xs text-text-secondary">or paste from clipboard (Ctrl+V)</p>
+                  <div id="screenshot-preview" class="mt-2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-4 mt-8">
+            <button type="button" id="cancel-button" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="save-trade-button">Save Trade</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script>
+    let selectedScreenshotFile = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tradeId = urlParams.get('id');
+        const formTitle = document.getElementById('form-title');
+        const saveTradeButton = document.getElementById('save-trade-button');
+        const tradeForm = document.getElementById('trade-form');
+        const screenshotDropArea = document.getElementById('screenshot-drop-area');
+        const fileUploadInput = document.getElementById('file-upload');
+        const screenshotPreview = document.getElementById('screenshot-preview');
+
+        let currentTrade = null;
+
+        if (tradeId) {
+            formTitle.textContent = 'Edit Trade';
+            saveTradeButton.textContent = 'Update Trade';
+            const response = await getTrade(tradeId);
+            if (response.ok) {
+                currentTrade = await response.json();
+                populateForm(currentTrade);
+                if (currentTrade.screenshot_filename) {
+                    const img = document.createElement('img');
+                    img.src = `${API_BASE_URL}/trades/screenshots/${currentTrade.screenshot_filename}`;
+                    img.className = 'mt-2 max-h-48 object-contain';
+                    screenshotPreview.innerHTML = '';
+                    screenshotPreview.appendChild(img);
+                }
+            } else {
+                alert('Failed to load trade for editing.');
+                window.location.href = 'trades.html';
+            }
+        }
+
+        // Event Listeners for Screenshot Upload
+        fileUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        screenshotDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            screenshotDropArea.classList.add('border-accent');
+        });
+
+        screenshotDropArea.addEventListener('dragleave', () => {
+            screenshotDropArea.classList.remove('border-accent');
+        });
+
+        screenshotDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            screenshotDropArea.classList.remove('border-accent');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    handleFile(blob, true); // Indicate it's from paste
+                    break;
+                }
+            }
+        });
+
+        tradeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('ticker', document.getElementById('ticker').value);
+            formData.append('result', document.getElementById('result').value);
+            formData.append('total_pnl', document.getElementById('total_pnl').value);
+            formData.append('entry_datetime', document.getElementById('entry_datetime').value + ':00Z');
+            formData.append('exit_datetime', document.getElementById('exit_datetime').value + ':00Z');
+            formData.append('risk_reward', document.getElementById('risk_reward').value);
+            formData.append('position', document.getElementById('position').value);
+            formData.append('stoploss_pips', document.getElementById('stoploss_pips').value);
+            formData.append('range', document.getElementById('trade_range').value); // Note: 'range' is the API field name
+            formData.append('result_type', document.getElementById('result_type').value);
+            formData.append('entry_model', document.getElementById('entry_model').value);
+            formData.append('trade_model', document.getElementById('trade_model').value);
+            formData.append('setup_type', document.getElementById('setup_type').value);
+            formData.append('confluences', JSON.stringify(document.getElementById('confluences').value.split(',').map(s => s.trim())));
+            formData.append('trade_note', document.getElementById('trade_note').value);
+            formData.append('roadmap', document.getElementById('roadmap').value);
+
+            if (selectedScreenshotFile) {
+                formData.append('screenshot', selectedScreenshotFile);
+            }
+
+            let response;
+            if (tradeId) {
+                response = await updateTrade(tradeId, formData);
+            } else {
+                response = await createTrade(formData);
+            }
+
+            if (response.ok) {
+                alert(tradeId ? 'Trade updated successfully!' : 'Trade created successfully!');
+                window.location.href = 'trades.html';
+            } else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message}`);
+            }
+        });
+
+        document.getElementById('cancel-button').addEventListener('click', () => {
+            window.location.href = 'trades.html';
+        });
+
+        function populateForm(trade) {
+            document.getElementById('ticker').value = trade.ticker;
+            document.getElementById('result').value = trade.result;
+            document.getElementById('total_pnl').value = trade.total_pnl;
+            document.getElementById('entry_datetime').value = trade.entry_datetime.substring(0, 16);
+            document.getElementById('exit_datetime').value = trade.exit_datetime.substring(0, 16);
+            document.getElementById('risk_reward').value = trade.risk_reward;
+            document.getElementById('position').value = trade.position;
+            document.getElementById('stoploss_pips').value = trade.stoploss_pips;
+            document.getElementById('trade_range').value = trade.trade_range; // Note: 'trade_range' is the HTML field name
+            document.getElementById('result_type').value = trade.result_type;
+            document.getElementById('entry_model').value = trade.entry_model;
+            document.getElementById('trade_model').value = trade.trade_model;
+            document.getElementById('setup_type').value = trade.setup_type;
+            document.getElementById('confluences').value = trade.confluences.join(', ');
+            document.getElementById('trade_note').value = trade.trade_note;
+            document.getElementById('roadmap').value = trade.roadmap;
+            // Screenshot file input cannot be pre-populated for security reasons
+        }
+
+        function handleFile(file, isPasted = false) {
+            if (!file.type.startsWith('image/')) {
+                alert('Only image files are allowed.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'mt-2 max-h-48 object-contain';
+                screenshotPreview.innerHTML = '';
+                screenshotPreview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+
+            // Rename file with timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[-:.]/g, '');
+            const originalExtension = file.name.split('.').pop();
+            const newFilename = `screenshot_${timestamp}.${originalExtension || 'png'}`;
+
+            // Create a new File object with the renamed filename
+            selectedScreenshotFile = new File([file], newFilename, { type: file.type });
+        }
+    });
+
+    feather.replace();
+    AOS.init();
+    initializeTheme();
+  </script>
+  <script src="assets/js/main.js"></script>
+
+</body>
+</html>

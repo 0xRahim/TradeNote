@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeNote - Playbook</title>
+  
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/dark-mode.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    .form-input, .form-select {
+        background-color: var(--background);
+    }
+    .playbook-item {
+        cursor: pointer; 
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem; 
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
+    .playbook-item:hover {
+        background-color: var(--muted);
+    }
+    .playbook-item.active {
+        background-color: var(--accent);
+        color: var(--background);
+        font-weight: 600;
+    }
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-content {
+        background-color: var(--sidebar-bg);
+        padding: 2rem;
+        border-radius: 1rem;
+        width: 90%;
+        max-width: 600px;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-overlay.active .modal-content {
+        transform: translateY(0);
+    }
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        --tw-border-opacity: 1;
+        border-width: 1px;
+        border-color: transparent;
+    }
+
+    .tag-gray { background-color: rgba(229, 231, 235, 1); color: rgba(55, 65, 81, 1); }
+    .tag-red { background-color: rgba(254, 226, 226, 1); color: rgba(185, 28, 28, 1); }
+    .tag-yellow { background-color: rgba(254, 249, 195, 1); color: rgba(180, 83, 9, 1); }
+    .tag-green { background-color: rgba(209, 250, 229, 1); color: rgba(4, 120, 87, 1); }
+    .tag-blue { background-color: rgba(219, 234, 254, 1); color: rgba(29, 78, 216, 1); }
+    .tag-indigo { background-color: rgba(224, 231, 255, 1); color: rgba(55, 48, 163, 1); }
+    .tag-purple { background-color: rgba(233, 213, 255, 1); color: rgba(107, 33, 168, 1); }
+    .tag-pink { background-color: rgba(252, 231, 243, 1); color: rgba(190, 24, 93, 1); }
+  </style>
+</head>
+<body class="bg-background text-text-primary">
+  <div id="app" class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar-bg p-6 flex-shrink-0 flex flex-col">
+        <div class="flex items-center gap-3 mb-8">
+            <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="font-display font-bold text-xl">TradeNote</span>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="dashboard.html" class="sidebar-link">
+                <i data-feather="home" class="sidebar-icon"></i>
+                <span>Overview</span>
+            </a>
+            <a href="daily-journal.html" class="sidebar-link">
+                <i data-feather="book" class="sidebar-icon"></i>
+                <span>Daily Journal</span>
+            </a>
+            <a href="trades.html" class="sidebar-link">
+                <i data-feather="bar-chart-2" class="sidebar-icon"></i>
+                <span>Trades</span>
+            </a>
+            <a href="notebook.html" class="sidebar-link">
+                <i data-feather="edit-3" class="sidebar-icon"></i>
+                <span>Notebook</span>
+            </a>
+            <a href="playbook.html" class="sidebar-link active">
+                <i data-feather="compass" class="sidebar-icon"></i>
+                <span>Playbook</span>
+            </a>
+            <a href="events.html" class="sidebar-link">
+                <i data-feather="calendar" class="sidebar-icon"></i>
+                <span>Events</span>
+            </a>
+        </nav>
+        <div>
+            <a href="add-trades.html" class="btn btn-primary w-full">
+                <i data-feather="plus" class="w-5 h-5"></i>
+                <span>Add New Trade</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="flex-1 p-8 overflow-auto">
+      <header class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-display font-bold">Playbook</h1>
+          <p class="text-text-secondary">Your collection of trading strategies.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="theme-toggler">
+                <div class="icon active" id="light-mode-icon"><i data-feather="sun"></i></div>
+                <div class="icon" id="dark-mode-icon"><i data-feather="moon"></i></div>
+            </div>
+            <button id="add-playbook-btn" class="btn btn-primary"><i data-feather="plus"></i><span>New Playbook</span></button>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-12 gap-8 h-[calc(100%-80px)]">
+        <!-- Playbook List -->
+        <div class="col-span-12 lg:col-span-3" data-aos="fade-right">
+          <div class="card p-4 h-full overflow-auto">
+            <div class="font-semibold mb-4 text-lg">My Playbooks</div>
+            <div id="playbook-list" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- Playbook Details -->
+        <div class="col-span-12 lg:col-span-9" data-aos="fade-up" data-aos-delay="100">
+          <div id="playbook-details" class="card h-full overflow-auto"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- New Playbook Modal -->
+    <div id="new-playbook-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold font-display mb-4" id="playbook-modal-title">New Playbook</h2>
+            <form id="playbook-form" class="space-y-4">
+                <input type="hidden" id="playbook-id-hidden">
+                <div class="form-group">
+                    <label class="form-label">Playbook Name</label>
+                    <input type="text" id="playbook-title" class="form-input" placeholder="e.g., Momentum Breakout" required>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label for="entry_model" class="form-label">Entry Model</label>
+                        <input type="text" id="entry_model" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trade_model" class="form-label">Trade Model</label>
+                        <input type="text" id="trade_model" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Setup Grade</label>
+                        <select id="setup-grade" class="form-select" required>
+                            <option>A+</option>
+                            <option>A</option>
+                            <option>B</option>
+                            <option>C</option>
+                            <option>D</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confluences (Comma Separated)</label>
+                    <input type="text" id="confluences" class="form-input" placeholder="e.g., Volume Spike, RSI Divergence">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rules</label>
+                    <textarea id="rules" class="form-input" rows="3" placeholder="Enter playbook rules..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmations</label>
+                    <textarea id="confirmations" class="form-input" rows="3" placeholder="Enter confirmation criteria..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Invalidations</label>
+                    <textarea id="invalidations" class="form-input" rows="3" placeholder="Enter invalidation criteria..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Roadmaps</label>
+                    <div id="roadmap-inputs" class="space-y-2">
+                        <input type="text" class="form-input" placeholder="Roadmap step 1">
+                    </div>
+                    <button type="button" id="add-roadmap-btn" class="btn btn-secondary mt-2"><i data-feather="plus"></i>Add Step</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tags (Comma Separated)</label>
+                    <input type="text" id="tags" class="form-input" placeholder="e.g., strategy, breakout">
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancel-playbook-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-playbook-btn">Save Playbook</button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    let allPlaybooks = [];
+    let activePlaybookId = null;
+
+    const tagColors = ['gray', 'red', 'yellow', 'green', 'blue', 'indigo', 'purple', 'pink'];
+    function getTagColor(tagText) {
+        let hash = 0;
+        for (let i = 0; i < tagText.length; i++) {
+            hash = tagText.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return tagColors[Math.abs(hash) % tagColors.length];
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        await fetchAndRenderPlaybooks();
+
+        // Event Listeners
+        document.getElementById('add-playbook-btn').addEventListener('click', () => {
+            openPlaybookModal();
+        });
+        document.getElementById('cancel-playbook-btn').addEventListener('click', () => {
+            document.getElementById('new-playbook-modal').classList.remove('active');
+        });
+        document.getElementById('playbook-form').addEventListener('submit', handlePlaybookFormSubmit);
+        document.getElementById('playbook-list').addEventListener('click', handlePlaybookSelection);
+        document.getElementById('add-roadmap-btn').addEventListener('click', addRoadmapInput);
+        document.getElementById('playbook-details').addEventListener('click', handlePlaybookActions);
+    });
+
+    async function fetchAndRenderPlaybooks() {
+        const response = await getPlaybooks();
+        if (response.ok) {
+            const data = await response.json();
+            allPlaybooks = data.playbooks;
+            renderPlaybookList();
+            if (allPlaybooks.length > 0) {
+                loadPlaybook(allPlaybooks[0].playbook_id);
+            } else {
+                document.getElementById('playbook-details').innerHTML = '<div class="p-6 text-center text-text-secondary">Select a playbook to view details, or create a new one.</div>';
+            }
+        }
+    }
+
+    function renderPlaybookList() {
+        const playbookListDiv = document.getElementById('playbook-list');
+        playbookListDiv.innerHTML = '';
+        if (allPlaybooks.length === 0) {
+            playbookListDiv.innerHTML = '<p class="text-text-secondary">No playbooks yet. Create one!</p>';
+            return;
+        }
+
+        allPlaybooks.forEach(playbook => {
+            const playbookItem = document.createElement('div');
+            playbookItem.className = `playbook-item ${playbook.playbook_id === activePlaybookId ? 'active' : ''}`;
+            playbookItem.dataset.id = playbook.playbook_id;
+            playbookItem.innerHTML = `<i data-feather="compass" class="w-5 h-5"></i><span>${playbook.title}</span>`;
+            playbookListDiv.appendChild(playbookItem);
+        });
+        feather.replace();
+    }
+
+    async function loadPlaybook(playbookId) {
+        const response = await getPlaybook(playbookId);
+        if (response.ok) {
+            const playbook = await response.json();
+            activePlaybookId = playbook.playbook_id;
+            renderPlaybookDetails(playbook);
+            renderPlaybookList(); // Re-render to update active state
+        } else {
+            alert('Failed to load playbook details.');
+        }
+    }
+
+    function renderPlaybookDetails(playbook) {
+        const playbookDetailsDiv = document.getElementById('playbook-details');
+        playbookDetailsDiv.innerHTML = `
+            <div class="p-6 border-b border-border-color flex justify-between items-center">
+                <h3 class="text-xl font-bold font-display">${playbook.title}</h3>
+                <div class="flex gap-2">
+                    <button class="btn btn-secondary edit-playbook-btn" data-id="${playbook.playbook_id}"><i data-feather="edit-2"></i><span>Edit</span></button>
+                    <button class="btn btn-danger delete-playbook-btn" data-id="${playbook.playbook_id}"><i data-feather="trash-2"></i><span>Delete</span></button>
+                </div>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="form-group">
+                        <label class="form-label">Entry Model</label>
+                        <div class="p-3 bg-muted rounded-lg text-text-secondary">${playbook.entry_model}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trade Model</label>
+                        <div class="p-3 bg-muted rounded-lg text-text-secondary">${playbook.trade_model}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Setup Grade</label>
+                        <div class="p-3 bg-muted rounded-lg text-text-secondary">${playbook.setup_grade}</div>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Confluences</label>
+                    <div class="flex flex-wrap gap-2">
+                        ${playbook.confluences.map(tag => `<span class="tag tag-${getTagColor(tag)}">${tag}</span>`).join('')}
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Rules</label>
+                    <div class="p-3 bg-muted rounded-lg text-text-secondary">${playbook.rules}</div>
+                </div>
+                <div>
+                    <label class="form-label">Confirmations</label>
+                    <div class="p-3 bg-muted rounded-lg text-text-secondary">${playbook.confirmations}</div>
+                </div>
+                <div>
+                    <label class="form-label">Invalidations</label>
+                    <div class="p-3 bg-muted rounded-lg text-text-secondary">${playbook.invalidations}</div>
+                </div>
+                <div>
+                    <label class="form-label">Roadmaps</label>
+                    <ul class="list-disc list-inside space-y-2">
+                        ${playbook.roadmap.map(roadmap => `<li>${roadmap}</li>`).join('')}
+                    </ul>
+                </div>
+                <div>
+                    <label class="form-label">Tags</label>
+                    <div class="flex flex-wrap gap-2">
+                        ${playbook.tags.map(tag => `<span class="tag tag-${getTagColor(tag)}">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        feather.replace();
+    }
+
+    function openPlaybookModal(playbook = null) {
+        const modal = document.getElementById('new-playbook-modal');
+        const form = document.getElementById('playbook-form');
+        const modalTitle = document.getElementById('playbook-modal-title');
+        const saveButton = document.getElementById('save-playbook-btn');
+        const roadmapInputsDiv = document.getElementById('roadmap-inputs');
+
+        form.reset();
+        roadmapInputsDiv.innerHTML = '<input type="text" class="form-input" placeholder="Roadmap step 1">';
+        document.getElementById('playbook-id-hidden').value = '';
+
+        if (playbook) {
+            modalTitle.textContent = 'Edit Playbook';
+            saveButton.textContent = 'Update Playbook';
+            document.getElementById('playbook-id-hidden').value = playbook.playbook_id;
+            document.getElementById('playbook-title').value = playbook.title;
+            document.getElementById('entry-model').value = playbook.entry_model;
+            document.getElementById('trade-model').value = playbook.trade_model;
+            document.getElementById('setup-grade').value = playbook.setup_grade;
+            document.getElementById('confluences').value = playbook.confluences.join(', ');
+            document.getElementById('rules').value = playbook.rules;
+            document.getElementById('confirmations').value = playbook.confirmations;
+            document.getElementById('invalidations').value = playbook.invalidations;
+            document.getElementById('tags').value = playbook.tags.join(', ');
+
+            roadmapInputsDiv.innerHTML = '';
+            playbook.roadmap.forEach(step => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-input';
+                input.value = step;
+                roadmapInputsDiv.appendChild(input);
+            });
+            if (playbook.roadmap.length === 0) {
+                roadmapInputsDiv.innerHTML = '<input type="text" class="form-input" placeholder="Roadmap step 1">';
+            }
+        } else {
+            modalTitle.textContent = 'New Playbook';
+            saveButton.textContent = 'Create Playbook';
+        }
+        modal.classList.add('active');
+    }
+
+    async function handlePlaybookFormSubmit(e) {
+        e.preventDefault();
+
+        const playbookId = document.getElementById('playbook-id-hidden').value;
+        const roadmapSteps = Array.from(document.querySelectorAll('#roadmap-inputs input')).map(input => input.value).filter(Boolean);
+
+        const playbookData = {
+            title: document.getElementById('playbook-title').value,
+            entry_model: document.getElementById('entry-model').value,
+            trade_model: document.getElementById('trade-model').value,
+            setup_grade: document.getElementById('setup-grade').value,
+            confluences: document.getElementById('confluences').value.split(',').map(s => s.trim()).filter(Boolean),
+            rules: document.getElementById('rules').value,
+            confirmations: document.getElementById('confirmations').value,
+            invalidations: document.getElementById('invalidations').value,
+            roadmap: roadmapSteps,
+            tags: document.getElementById('tags').value.split(',').map(s => s.trim()).filter(Boolean)
+        };
+
+        let response;
+        if (playbookId) {
+            response = await updatePlaybook(playbookId, playbookData);
+        } else {
+            response = await createPlaybook(playbookData);
+        }
+
+        if (response.ok) {
+            alert(playbookId ? 'Playbook updated successfully!' : 'Playbook created successfully!');
+            document.getElementById('new-playbook-modal').classList.remove('active');
+            await fetchAndRenderPlaybooks();
+        } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message}`);
+        }
+    }
+
+    function handlePlaybookSelection(e) {
+        const item = e.target.closest('.playbook-item');
+        if (item) {
+            const id = item.dataset.id;
+            loadPlaybook(id);
+        }
+    }
+
+    async function handlePlaybookActions(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        const playbookId = target.dataset.id;
+
+        if (target.classList.contains('edit-playbook-btn')) {
+            const response = await getPlaybook(playbookId);
+            if (response.ok) {
+                const playbook = await response.json();
+                openPlaybookModal(playbook);
+            } else {
+                alert('Failed to fetch playbook details.');
+            }
+        } else if (target.classList.contains('delete-playbook-btn')) {
+            if (confirm('Are you sure you want to delete this playbook?')) {
+                const response = await deletePlaybook(playbookId);
+                if (response.ok) {
+                    alert('Playbook deleted successfully!');
+                    await fetchAndRenderPlaybooks();
+                } else {
+                    alert('Failed to delete playbook.');
+                }
+            }
+        }
+    }
+
+    function addRoadmapInput() {
+        const roadmapInputsDiv = document.getElementById('roadmap-inputs');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-input';
+        input.placeholder = `Roadmap step ${roadmapInputsDiv.children.length + 1}`;
+        roadmapInputsDiv.appendChild(input);
+    }
+
+  </script>
+</body>
+</html>

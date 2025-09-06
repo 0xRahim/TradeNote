@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeNote - Notebook</title>
+  
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/dark-mode.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+  <style>
+    .file-item { 
+        cursor: pointer; 
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem; 
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .file-item:hover { 
+        background-color: var(--muted);
+    }
+    .file-item.active {
+        background-color: var(--muted);
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    .EasyMDEContainer { 
+        border: none;
+        background-color: var(--card-bg);
+    }
+    .editor-toolbar {
+        background-color: var(--sidebar-bg);
+        border-top: 1px solid var(--border-color);
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+    .CodeMirror {
+        background-color: var(--card-bg);
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+    }
+    .editor-toolbar button {
+        color: var(--text-secondary);
+    }
+    .editor-toolbar button:hover, .editor-toolbar button.active {
+        background: var(--muted);
+        color: var(--text-primary);
+    }
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-content {
+        background-color: var(--sidebar-bg);
+        padding: 2rem;
+        border-radius: 1rem;
+        width: 90%;
+        max-width: 400px;
+    }
+  </style>
+</head>
+<body class="bg-background text-text-primary">
+  <div id="app" class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar-bg p-6 flex-shrink-0 flex flex-col">
+        <div class="flex items-center gap-3 mb-8">
+            <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="font-display font-bold text-xl">TradeNote</span>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="dashboard.html" class="sidebar-link">
+                <i data-feather="home" class="sidebar-icon"></i>
+                <span>Overview</span>
+            </a>
+            <a href="daily-journal.html" class="sidebar-link">
+                <i data-feather="book" class="sidebar-icon"></i>
+                <span>Daily Journal</span>
+            </a>
+            <a href="trades.html" class="sidebar-link">
+                <i data-feather="bar-chart-2" class="sidebar-icon"></i>
+                <span>Trades</span>
+            </a>
+            <a href="notebook.html" class="sidebar-link active">
+                <i data-feather="edit-3" class="sidebar-icon"></i>
+                <span>Notebook</span>
+            </a>
+            <a href="playbook.html" class="sidebar-link">
+                <i data-feather="compass" class="sidebar-icon"></i>
+                <span>Playbook</span>
+            </a>
+            <a href="events.html" class="sidebar-link">
+                <i data-feather="calendar" class="sidebar-icon"></i>
+                <span>Events</span>
+            </a>
+        </nav>
+        <div>
+            <a href="add-trades.html" class="btn btn-primary w-full">
+                <i data-feather="plus" class="w-5 h-5"></i>
+                <span>Add New Trade</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="flex-1 p-8 overflow-auto">
+      <header class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-display font-bold">Notebook</h1>
+          <p class="text-text-secondary">Your personal trading journal.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="theme-toggler">
+                <div class="icon active" id="light-mode-icon"><i data-feather="sun"></i></div>
+                <div class="icon" id="dark-mode-icon"><i data-feather="moon"></i></div>
+            </div>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-12 gap-8 h-[calc(100%-80px)]">
+        <!-- File Browser -->
+        <div class="col-span-12 lg:col-span-3" data-aos="fade-right">
+          <div class="card p-4 h-full overflow-auto">
+            <div class="flex justify-between items-center mb-4">
+                <div class="font-semibold text-lg">My Notes</div>
+                <div class="flex gap-2">
+                    <button id="new-note-btn" class="btn btn-secondary btn-sm"><i data-feather="plus"></i></button>
+                    <button id="delete-note-btn" class="btn btn-secondary btn-sm"><i data-feather="trash-2"></i></button>
+                </div>
+            </div>
+            <div id="file-browser" class="space-y-1"></div>
+          </div>
+        </div>
+
+        <!-- Rich Text Editor -->
+        <div class="col-span-12 lg:col-span-9 h-full" data-aos="fade-up" data-aos-delay="100">
+          <div class="card h-full flex flex-col">
+            <div class="p-4 flex justify-between items-center border-b border-border-color">
+              <input type="text" id="note-title-input" class="form-input text-lg font-semibold w-full bg-transparent border-none focus:ring-0" placeholder="Note Title">
+              <div class="flex gap-2">
+                <button id="ref-trade-btn" class="btn btn-secondary"><i data-feather="link"></i><span>Ref a Trade</span></button>
+                <button id="save-btn" class="btn btn-primary"><i data-feather="save"></i><span>Save Note</span></button>
+              </div>
+            </div>
+            <div class="flex-1 p-1">
+              <textarea id="markdown-editor"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- New Note Modal -->
+  <div id="new-note-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 class="text-2xl font-bold font-display mb-4">New Note</h2>
+        <form id="new-note-form" class="space-y-4">
+            <div class="form-group">
+                <label class="form-label">Note Title</label>
+                <input type="text" id="new-note-title" class="form-input" placeholder="e.g., My new note">
+            </div>
+            <div class="flex justify-end gap-4">
+                <button type="button" id="cancel-note-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Note</button>
+            </div>
+        </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script>
+    // Theme Toggle Logic (copied from index.html)
+    const lightModeIcon = document.getElementById('light-mode-icon');
+    const darkModeIcon = document.getElementById('dark-mode-icon');
+    const body = document.body;
+
+    function setTheme(theme) {
+        if (theme === 'dark') {
+            body.classList.add('dark-mode');
+            lightModeIcon.classList.remove('active');
+            darkModeIcon.classList.add('active');
+        } else {
+            body.classList.remove('dark-mode');
+            lightModeIcon.classList.add('active');
+            darkModeIcon.classList.remove('active');
+        }
+        localStorage.setItem('theme', theme);
+    }
+
+    let storedTheme = localStorage.getItem('theme') || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    setTheme(storedTheme);
+
+    lightModeIcon.addEventListener('click', () => {
+        setTheme('light');
+    });
+
+    darkModeIcon.addEventListener('click', () => {
+        setTheme('dark');
+    });
+
+    // Existing Notebook JS
+    let easyMDE;
+    let activeNoteId = null;
+    let allNotes = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        feather.replace();
+        AOS.init();
+
+        easyMDE = new EasyMDE({
+            element: document.getElementById('markdown-editor'),
+            spellChecker: false,
+            toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen"],
+            minHeight: "100%",
+            maxHeight: "100%",
+        });
+
+        await fetchAndRenderNotes();
+
+        // Event Listeners
+        document.getElementById('new-note-btn').addEventListener('click', () => {
+            document.getElementById('new-note-modal').classList.add('active');
+        });
+        document.getElementById('cancel-note-btn').addEventListener('click', () => {
+            document.getElementById('new-note-modal').classList.remove('active');
+        });
+        document.getElementById('new-note-form').addEventListener('submit', createNewNote);
+        document.getElementById('save-btn').addEventListener('click', saveNote);
+        document.getElementById('delete-note-btn').addEventListener('click', deleteCurrentNote);
+        document.getElementById('file-browser').addEventListener('click', handleNoteSelection);
+        document.getElementById('ref-trade-btn').addEventListener('click', () => {
+            const cm = easyMDE.codemirror;
+            const doc = cm.getDoc();
+            const cursor = doc.getCursor(); 
+            const tradeRef = '\n*Trade Ref: [TICKER-YYYYMMDD-NN]*';
+            doc.replaceRange(tradeRef, cursor);
+        });
+    });
+
+    async function fetchAndRenderNotes() {
+        const response = await getNotes();
+        if (response.ok) {
+            const data = await response.json();
+            allNotes = data.notes;
+            renderNoteList();
+            if (allNotes.length > 0) {
+                loadNote(allNotes[0].id);
+            }
+        }
+    }
+
+    function renderNoteList() {
+        const fileBrowser = document.getElementById('file-browser');
+        fileBrowser.innerHTML = '';
+        if (allNotes.length === 0) {
+            fileBrowser.innerHTML = '<p class="text-text-secondary">No notes yet. Create one!</p>';
+            return;
+        }
+
+        allNotes.forEach(note => {
+            const noteItem = document.createElement('div');
+            noteItem.className = `file-item ${activeNoteId === note.id ? 'active' : ''}`;
+            noteItem.dataset.noteId = note.id;
+            noteItem.innerHTML = `<i data-feather="file-text" class="w-4 h-4"></i><span>${note.title}</span>`;
+            fileBrowser.appendChild(noteItem);
+        });
+        feather.replace();
+    }
+
+    async function loadNote(noteId) {
+        const note = allNotes.find(n => n.id === noteId);
+        if (note) {
+            activeNoteId = noteId;
+            document.getElementById('note-title-input').value = note.title;
+            easyMDE.value(note.content);
+            renderNoteList(); // Re-render to update active state
+        }
+    }
+
+    async function createNewNote(e) {
+        e.preventDefault();
+        const newNoteTitle = document.getElementById('new-note-title').value;
+        if (newNoteTitle) {
+            const noteData = { title: newNoteTitle, content: '' };
+            const response = await createNote(noteData);
+            if (response.ok) {
+                alert('Note created successfully!');
+                document.getElementById('new-note-title').value = '';
+                document.getElementById('new-note-modal').classList.remove('active');
+                await fetchAndRenderNotes();
+                loadNote(allNotes[allNotes.length - 1].id); // Load the newly created note
+            } else {
+                alert('Failed to create note.');
+            }
+        }
+    }
+
+    async function saveNote() {
+        if (!activeNoteId) {
+            alert('No note selected to save.');
+            return;
+        }
+        const title = document.getElementById('note-title-input').value;
+        const content = easyMDE.value();
+        const noteData = { title, content };
+        const response = await updateNote(activeNoteId, noteData);
+        if (response.ok) {
+            alert('Note saved successfully!');
+            await fetchAndRenderNotes();
+        } else {
+            alert('Failed to save note.');
+        }
+    }
+
+    async function deleteCurrentNote() {
+        if (!activeNoteId) {
+            alert('No note selected to delete.');
+            return;
+        }
+        if (confirm('Are you sure you want to delete this note?')) {
+            const response = await deleteNote(activeNoteId);
+            if (response.ok) {
+                alert('Note deleted successfully!');
+                activeNoteId = null; // Clear active note
+                easyMDE.value(''); // Clear editor
+                document.getElementById('note-title-input').value = '';
+                await fetchAndRenderNotes();
+            } else {
+                alert('Failed to delete note.');
+            }
+        }
+    }
+
+    function handleNoteSelection(e) {
+        const item = e.target.closest('.file-item');
+        if (item) {
+            const noteId = parseInt(item.dataset.noteId);
+            if (noteId) {
+                loadNote(noteId);
+            }
+        }
+    }
+  </script>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

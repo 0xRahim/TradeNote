@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeNote - Login</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/dark-mode.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+
+<body class="bg-background text-text-primary">
+    <div class="flex items-center gap-4 justify-end pt-4 pr-4 absolute top-0 right-0">
+      <div class="theme-toggler">
+          <div class="icon" id="light-mode-icon"><i data-feather="sun"></i></div>
+          <div class="icon" id="dark-mode-icon"><i data-feather="moon"></i></div>
+      </div>
+    </div>
+
+    <div class="container mx-auto h-screen flex flex-col justify-center items-center">
+        <h1 class="font-display font-bold text-4xl mb-8">Login</h1>
+        <div class="card p-6 w-96">
+            <div class="mb-4">
+                <label for="username" class="block text-text-secondary text-sm font-bold mb-2">Username</label>
+                <input type="text" id="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-text-secondary text-sm font-bold mb-2">Password</label>
+                <input type="password" id="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="flex items-center justify-between">
+                <button id="login-button" class="btn btn-primary">Sign In</button>
+                <a href="#" id="open-register-modal" class="inline-block align-baseline font-bold text-sm text-accent hover:text-accent-dark">Create an Account</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Form (Modal) -->
+    <div id="register-modal" class="fixed top-0 left-0 w-full h-full bg-gray-500 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="card p-6 w-96">
+            <h2 class="text-2xl font-semibold mb-4">Create New Account</h2>
+            <div class="mb-4">
+                <label for="register-username" class="block text-text-secondary text-sm font-bold mb-2">Username</label>
+                <input type="text" id="register-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="register-password" class="block text-text-secondary text-sm font-bold mb-2">Password</label>
+                <input type="password" id="register-password" class="shadow appearance-none border rounded w-full py-2 px-3 text-text-primary leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label class="block text-text-secondary text-sm font-bold mb-2">Profile Picture</label>
+                <input type="file" id="register-avatar">
+            </div>
+            <div class="flex justify-end">
+                <button id="close-register-modal" class="btn mr-2">Cancel</button>
+                <button id="register-button" class="btn btn-primary">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+        document.getElementById('login-button').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            login(username, password);
+        });
+
+        document.getElementById('open-register-modal').addEventListener('click', () => {
+            document.getElementById('register-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('close-register-modal').addEventListener('click', () => {
+            document.getElementById('register-modal').classList.add('hidden');
+        });
+
+        document.getElementById('register-button').addEventListener('click', async () => {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const avatarInput = document.getElementById('register-avatar');
+            let avatar = null;
+
+            if (avatarInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    avatar = e.target.result.split(',')[1]; // Get base64 string
+                    await register(username, password, avatar);
+                };
+                reader.readAsDataURL(avatarInput.files[0]);
+            } else {
+                await register(username, password, null);
+            }
+        });
+
+        // Theme Toggle Logic
+        const lightModeIcon = document.getElementById('light-mode-icon');
+        const darkModeIcon = document.getElementById('dark-mode-icon');
+        const body = document.body;
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                lightModeIcon.classList.remove('active');
+                darkModeIcon.classList.add('active');
+            } else {
+                body.classList.remove('dark-mode');
+                lightModeIcon.classList.add('active');
+                darkModeIcon.classList.remove('active');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        let storedTheme = localStorage.getItem('theme') || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        setTheme(storedTheme);
+
+        lightModeIcon.addEventListener('click', () => {
+            setTheme('light');
+        });
+
+        darkModeIcon.addEventListener('click', () => {
+            setTheme('dark');
+        });
+
+        feather.replace();
+
+    </script>
+    <script src="assets/js/main.js"></script>
+
+</html>

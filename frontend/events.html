@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeNote - Events</title>
+  
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/dark-mode.css" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    .tab { 
+        cursor: pointer; 
+        padding: 0.75rem 1.5rem;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    .tab.active { 
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 600;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body class="bg-background text-text-primary">
+  <div id="app" class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar-bg p-6 flex-shrink-0 flex flex-col">
+        <div class="flex items-center gap-3 mb-8">
+            <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="font-display font-bold text-xl">TradeNote</span>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="dashboard.html" class="sidebar-link">
+                <i data-feather="home" class="sidebar-icon"></i>
+                <span>Overview</span>
+            </a>
+            <a href="daily-journal.html" class="sidebar-link">
+                <i data-feather="book" class="sidebar-icon"></i>
+                <span>Daily Journal</span>
+            </a>
+            <a href="trades.html" class="sidebar-link">
+                <i data-feather="bar-chart-2" class="sidebar-icon"></i>
+                <span>Trades</span>
+            </a>
+            <a href="notebook.html" class="sidebar-link">
+                <i data-feather="edit-3" class="sidebar-icon"></i>
+                <span>Notebook</span>
+            </a>
+            <a href="playbook.html" class="sidebar-link">
+                <i data-feather="compass" class="sidebar-icon"></i>
+                <span>Playbook</span>
+            </a>
+            <a href="events.html" class="sidebar-link active">
+                <i data-feather="calendar" class="sidebar-icon"></i>
+                <span>Events</span>
+            </a>
+        </nav>
+        <div>
+            <a href="add-trades.html" class="btn btn-primary w-full">
+                <i data-feather="plus" class="w-5 h-5"></i>
+                <span>Add New Trade</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main area -->
+    <main class="flex-1 p-8 overflow-auto">
+      <header class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-display font-bold">Events</h1>
+          <p class="text-text-secondary">Market News & Watchlist</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="theme-toggler">
+                <div class="icon active" id="light-mode-icon"><i data-feather="sun"></i></div>
+                <div class="icon" id="dark-mode-icon"><i data-feather="moon"></i></div>
+            </div>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-12 gap-8">
+        <!-- News Feed -->
+        <div class="col-span-12 lg:col-span-8" data-aos="fade-up">
+          <div class="card">
+            <div class="flex border-b border-border-color text-sm">
+              <div class="tab active" data-tab="forex">Forex News</div>
+              <div class="tab" data-tab="crypto">Crypto News</div>
+              <div class="tab" data-tab="earnings">Earnings Releases</div>
+            </div>
+            <div id="forex-content" class="tab-content active p-6 space-y-4"></div>
+            <div id="crypto-content" class="tab-content p-6 space-y-4"></div>
+            <div id="earnings-content" class="tab-content p-6 space-y-4"></div>
+          </div>
+        </div>
+
+        <!-- Wallet & Watchlist -->
+        <div class="col-span-12 lg:col-span-4 space-y-8">
+            <div class="card p-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                        <i data-feather="briefcase" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm text-text-secondary">Wallet Balance</div>
+                        <div class="text-2xl font-bold mt-1">$25,123.45</div>
+                    </div>
+                </div>
+                <div class="text-sm text-success mt-2 font-semibold">+1.2% today</div>
+            </div>
+            <div class="card p-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="text-lg font-semibold mb-4">Watchlist</div>
+                <div id="watchlist-content" class="space-y-3"></div>
+            </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        feather.replace();
+        AOS.init();
+        initializeTheme();
+
+        await fetchAndRenderEvents();
+
+        // Tab handling
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-content`).classList.add('active');
+            });
+        });
+
+        // Initial render of the first tab
+        document.querySelector('.tab.active').click();
+    });
+
+    async function fetchAndRenderEvents() {
+        const response = await getEvents();
+        if (response.ok) {
+            const eventsData = await response.json();
+            
+            const earningsContent = document.getElementById('earnings-content');
+            earningsContent.innerHTML = '';
+
+            eventsData.forEach(day => {
+                day.events.forEach(event => {
+                    if (event.type === 'earnings') {
+                        const item = `
+                            <div class="border-b border-border-color pb-3 last:border-b-0">
+                                <div class="font-semibold hover:text-accent transition cursor-pointer">${event.symbol}: ${event.details}</div>
+                                <div class="text-xs text-text-secondary mt-1">${day.date}, ${event.time}</div>
+                            </div>
+                        `;
+                        earningsContent.innerHTML += item;
+                    }
+                });
+            });
+
+            // Placeholder for other news categories and watchlist
+            const newsData = {
+                forex: [
+                    { title: 'Dollar strengthens ahead of Fed meeting', source: 'Reuters', time: '2h ago' },
+                    { title: 'EUR/USD breaks key support level', source: 'Bloomberg', time: '4h ago' },
+                    { title: 'BoJ intervention fears keep USD/JPY traders on edge', source: 'FXStreet', time: '5h ago' },
+                ],
+                crypto: [
+                    { title: 'Bitcoin rallies past $70,000 on spot ETF inflows', source: 'CoinDesk', time: '1h ago' },
+                    { title: 'Ethereum layer-2 solutions see record transaction volume', source: 'Decrypt', time: '5h ago' },
+                ]
+            };
+
+            const watchlistData = [
+                { ticker: 'BTC/USD', price: '70,123.45', change: '+2.5%', changeClass: 'text-success' },
+                { ticker: 'EUR/USD', price: '1.0850', change: '-0.2%', changeClass: 'text-danger' },
+                { ticker: 'AAPL', price: '195.67', change: '+1.8%', changeClass: 'text-success' },
+                { ticker: 'GOLD', price: '2350.50', change: '+0.5%', changeClass: 'text-success' },
+            ];
+
+            function renderNews(category, containerId) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = newsData[category].map(item => `
+                    <div class="border-b border-border-color pb-3 last:border-b-0">
+                        <div class="font-semibold hover:text-accent transition cursor-pointer">${item.title || ''}</div>
+                        <div class="text-xs text-text-secondary mt-1">${item.source || item.time}</div>
+                    </div>
+                `).join('');
+            }
+
+            function renderWatchlist() {
+                const container = document.getElementById('watchlist-content');
+                container.innerHTML = watchlistData.map(item => `
+                    <div class="flex justify-between items-center py-2 border-b border-border-color last:border-b-0">
+                        <div>
+                            <div class="font-semibold">${item.ticker}</div>
+                            <div class="text-sm text-text-secondary">${item.price}</div>
+                        </div>
+                        <div class="font-semibold ${item.changeClass}">${item.change}</div>
+                    </div>
+                `).join('');
+            }
+
+            renderNews('forex', 'forex-content');
+            renderNews('crypto', 'crypto-content');
+            renderWatchlist();
+
+        } else {
+            alert('Failed to fetch events.');
+        }
+    }
+  </script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
