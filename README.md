@@ -6,7 +6,7 @@ A powerful and personal trading journal to track your trades, analyze your perfo
 
 | Dashboard | Trades | Add Trade |
 | :---: | :---: | :---: |
-| *Drag your screenshot here* | *Drag your screenshot here* | *Drag your screenshot here* |
+| ![Dashboard Screenshot](https://i.ibb.co/qLb6hSVk/image.png)| *Drag your screenshot here* | *Drag your screenshot here* |
 | **Playbook** | **Notebook** | **Events** |
 | *Drag your screenshot here* | *Drag your screenshot here* | *Drag your screenshot here* |
 
