@@ -34,8 +34,8 @@ A powerful and personal trading journal to track your trades, analyze your perfo
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/your-username/TradeNoteV3.git
-    cd TradeNoteV3
+    git clone https://github.com/your-username/TradeNote.git
+    cd TradeNote
     ```
 2.  Run the setup script to install dependencies:
     ```bash
