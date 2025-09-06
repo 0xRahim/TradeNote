@@ -6,7 +6,7 @@ A powerful and personal trading journal to track your trades, analyze your perfo
 
 | Dashboard | Trades | Add Trade |
 | :---: | :---: | :---: |
-| ![Dashboard Screenshot](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/dashboard.png)| ![Trades](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/trades.png) | ** |
+| ![Dashboard Screenshot](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/dashboard.png)| ![Trades](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/trades.png) | ![Add Trade](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/add-trades.png) |
 | **Playbook** | **Notebook** | **Events** |
 | ![Playbook](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/playbook.png) | ![Notebook](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/notebook.png) | ![Events](https://raw.githubusercontent.com/0xRahim/TradeNote/refs/heads/master/screenshots/events.png) |
 
